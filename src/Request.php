@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Kingsoft\HTTP;
+namespace Kingsoft\Http;
 
 class Request
 {

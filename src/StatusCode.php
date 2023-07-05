@@ -1,7 +1,6 @@
 <?php declare(strict_types=1);
 
-
-namespace Kingsoft\HTTP;
+namespace Kingsoft\Http;
 
 enum StatusCode: int
 {
@@ -45,4 +44,5 @@ enum StatusCode: int
 	case ServiceUnavailable = 503;
 	case GatewayTimeout = 504;
 	case HTTPVersionNotSupported = 505;
-};
+}
+;

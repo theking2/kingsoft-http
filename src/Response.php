@@ -1,17 +1,15 @@
-<?php
+<?php declare(strict_types=1);
 
-declare(strict_types=1);
+namespace Kingsoft\Http;
 
-namespace Kingsoft\HTTP;
-
-enum ApplicationContentTypeString : string
+enum ApplicationContentTypeString: string
 {
 	case APPLICATION_JSON = 'application/json';
 	case APPLICATION_PROBLEM_JSON = 'application/problem+json';
 	case APPLICATION_XML = 'application/xml';
 	case APPLICATION_PROBLEM_XML = 'application/problem+xml';
 }
-enum ApplicationType : string
+enum ApplicationType: string
 {
 	case JSON = 'json';
 	case XML = 'xml';
@@ -27,12 +25,13 @@ class Response
 		readonly string|null $headers = 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With',
 		readonly string|null $origin = '*',
 		readonly int|null $maxAge = 3600,
-		
-	) {}
 
-	private function decodeHttpResponse( ): string
+	) {
+	}
+
+	private function decodeHttpResponse(): string
 	{
-		return match ( $this-> statusCode ) {
+		return match ( $this->statusCode ) {
 			StatusCode::Continue => 'Continue',
 			StatusCode::SwitchingProtocols => 'Switching Protocols',
 			StatusCode::OK => 'OK',
@@ -75,58 +74,58 @@ class Response
 			StatusCode::HTTPVersionNotSupported => 'HTTP Version Not Supported',
 			default => 'Unknown HTTP status code'
 		};
-	}	
+	}
 	/**
 	 * sendAccessControlAllowOrigin` send the Access-Control-Allow-Origin header
 	 *
 	 * @return self
 	 */
-	public function sendAccessControlAllowOrigin( ): self
+	public function sendAccessControlAllowOrigin(): self
 	{
-		header( "Access-Control-Allow-Origin: " . ( $this-> origin ?? '*' ) );
+		header( "Access-Control-Allow-Origin: " . ( $this->origin ?? '*' ) );
 		return $this;
-	}	
+	}
 	/**
 	 * sendAccessControlAllowMethods send the Access-Control-Allow-Methods header
 	 *
 	 * @return Response
 	 */
-	public function sendAccessControlAllowMethods( ): self
+	public function sendAccessControlAllowMethods(): self
 	{
-		header( "Access-Control-Allow-Methods: " . ( $this-> allowedMethods ?? 'OPTIONS,GET,POST,PUT,DELETE' ) );
+		header( "Access-Control-Allow-Methods: " . ( $this->allowedMethods ?? 'OPTIONS,GET,POST,PUT,DELETE' ) );
 		return $this;
-	}	
+	}
 	/**
 	 * sendAccessControlMaxAge send the Access-Control-Max-Age header
 	 *
 	 * @return self
 	 */
-	public function sendAccessControlMaxAge( ): self
+	public function sendAccessControlMaxAge(): self
 	{
-		header( "Access-Control-Max-Age: " . ( $this-> maxAge ?? 3600 ) );
+		header( "Access-Control-Max-Age: " . ( $this->maxAge ?? 3600 ) );
 		return $this;
-	}	
+	}
 	/**
 	 * sendAccessControlAllowHeaders send the Access-Control-Allow-Headers header
 	 *
 	 * @return Response
 	 */
-	public function sendAccessControlAllowHeaders( ): self
+	public function sendAccessControlAllowHeaders(): self
 	{
-		header( "Access-Control-Allow-Headers: " . ( $this-> headers ?? 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With' ) );
+		header( "Access-Control-Allow-Headers: " . ( $this->headers ?? 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With' ) );
 		return $this;
-	}	
-	
+	}
+
 	/**
 	 * sendETag send the ETag header based on the body
 	 *
 	 * @return Response
 	 */
-	public function sendETag( ): self
+	public function sendETag(): self
 	{
-		header( "ETag: " . $this-> etag ?? hash( 'md5', $this-> body ) );
+		header( "ETag: " . $this->etag ?? hash( 'md5', $this->body ) );
 		return $this;
-	}	
+	}
 	/**
 	 * sendContentTypeJson based on the HTTP status code
 	 * json or problem+json
@@ -134,35 +133,35 @@ class Response
 	 * @param  mixed $httpStatusCode
 	 * @return Response
 	 */
-	public function sendContentType( ApplicationType|null $type=ApplicationType::JSON ): self
+	public function sendContentType( ApplicationType|null $type = ApplicationType::JSON ): self
 	{
 		$contentType = null;
-		if( $this-> statusCode->value >= 400 && $this-> statusCode->value < 600 ) {
-			$contentType = match( $type ) {
+		if( $this->statusCode->value >= 400 && $this->statusCode->value < 600 ) {
+			$contentType = match ( $type ) {
 				ApplicationType::JSON => ApplicationContentTypeString::APPLICATION_PROBLEM_JSON,
 				ApplicationType::XML => ApplicationContentTypeString::APPLICATION_PROBLEM_XML,
 			};
 		} else {
-			$contentType = match( $type ) {
+			$contentType = match ( $type ) {
 				ApplicationType::JSON => ApplicationContentTypeString::APPLICATION_JSON,
 				ApplicationType::XML => ApplicationContentTypeString::APPLICATION_XML,
 			};
 		}
 		header( "Content-Type: " . ( $contentType ?? 'application/json' ) . "; charset=UTF-8" );
 		return $this;
-	}	
+	}
 	/**
 	 * sendStatusCode
 	 *
 	 * @return self
 	 */
-	public function sendStatusCode( ): self
+	public function sendStatusCode(): self
 	{
 		header(
 			sprintf(
 				'HTTP/1.1 %d %s',
-				$this-> statusCode->value,
-				self::decodeHttpResponse( )
+				$this->statusCode->value,
+				self::decodeHttpResponse()
 			)
 		);
 		return $this;
