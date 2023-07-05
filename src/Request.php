@@ -31,7 +31,7 @@ class Request
   public readonly int|string|null $id;
   /** @var array|null $query query parameters as key value array */
   public readonly array|null $query;
-  
+
   /**
    * __construct create a new Request object
    * Parse the request and set the properties
@@ -53,8 +53,8 @@ class Request
 
     /* if the request method is OPTIONS, we don't need to parse the request further */
     if( $this->method === RequestMethod::Options->value ) {
-      (new Response( StatusCode::OK, null, $this-> allowedMethods, null, null, null, null))
-      -> sendAll();
+      ( new Response( StatusCode::OK, null, $this->allowedMethods, null, null, null, null ) )
+        ->sendAll();
       exit;
     }
     /**
@@ -99,7 +99,7 @@ class Request
    */
   public function handleRequest(): void
   {
-    $this->methodHandlers[ $this->method ]( $this->id, $this->query );
+    $this->methodHandlers[ $this->method ]( $this );
   }
 
   /**
@@ -140,6 +140,4 @@ class Request
       return null;
     }
   }
-
-
 }
