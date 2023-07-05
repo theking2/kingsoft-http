@@ -54,11 +54,7 @@ class Request
     /* if the request method is OPTIONS, we don't need to parse the request further */
     if( $this->method === RequestMethod::Options->value ) {
       (new Response( StatusCode::OK, null, $this-> allowedMethods, null, null, null, null))
-      -> sendAccessControlAllowMethods()
-      -> sendAccessControlAllowHeaders()
-      -> sendAccessControlAllowOrigin()
-      -> sendAccessControlMaxAge();
-
+      -> sendAll();
       exit;
     }
     /**

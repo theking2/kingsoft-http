@@ -167,5 +167,16 @@ class Response
 		return $this;
 	}
 
+	public function sendAll(): self
+	{
+		return $this
+			-> sendStatusCode()
+			-> sendContentType()
+			-> sendAccessControlAllowOrigin()
+			-> sendAccessControlAllowMethods()
+			-> sendAccessControlAllowHeaders()
+			-> sendAccessControlMaxAge()
+			-> sendETag();
+	}
 
 }
