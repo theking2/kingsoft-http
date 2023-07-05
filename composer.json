@@ -1,5 +1,5 @@
 {
-    "name": "theking2/http",
+    "name": "kingsoft/http",
     "description": "Http Request/Response handler",
     "type": "library",
     "license": "MIT",
