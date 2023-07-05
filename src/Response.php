@@ -137,23 +137,23 @@ class Response
 	 * @param  mixed $httpStatusCode
 	 * @return Response
 	 */
-	public function sendContentType( ): self
+	public function sendContentType(): self
 	{
 		$contentType = null;
 		if( $this->statusCode->value >= 400 && $this->statusCode->value < 600 ) {
-			$contentType = match ( $this-> contentType) {
+			$contentType = match ( $this->contentType ) {
 				ContentType::Json => ContentTypeString::JsonProblem,
 				ContentType::Xml => ContentTypeString::XmlProblem,
 				ContentType::Text => ContentTypeString::TextPlain,
 			};
 		} else {
-			$contentType = match ( $this-> contentType ) {
+			$contentType = match ( $this->contentType ) {
 				ContentType::Json => ContentTypeString::Json,
 				ContentType::Xml => ContentTypeString::Xml,
 				ContentType::Text => ContentTypeString::TextPlain,
 			};
 		}
-		header( "Content-Type: " . ( $contentType ?? 'application/json' ) . "; charset=UTF-8" );
+		header( "Content-Type: " . ( $contentType->value ?? 'application/json' ) . "; charset=UTF-8" );
 		return $this;
 	}
 	/**
@@ -175,14 +175,17 @@ class Response
 
 	public function sendAll(): self
 	{
-		return $this
-			-> sendStatusCode()
-			-> sendContentType()
-			-> sendAccessControlAllowOrigin()
-			-> sendAccessControlAllowMethods()
-			-> sendAccessControlAllowHeaders()
-			-> sendAccessControlMaxAge()
-			-> sendETag();
+		$this->sendStatusCode();
+		$this->sendContentType();
+		$this->sendAccessControlAllowOrigin();
+		$this->sendAccessControlAllowMethods();
+		$this->sendAccessControlAllowHeaders();
+		$this->sendAccessControlMaxAge();
+		$this->sendETag();
+		if( $this->body ) {
+			echo $this->body;
+		}
+		return $this;
 	}
 
 }
