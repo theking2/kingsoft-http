@@ -9,7 +9,10 @@ class Request
   public readonly string $resource;
   public readonly int|string|null $id;
   public readonly array|null $query;
-  public function __construct()
+  public function __construct(
+    readonly array $allowedEndpoints,
+    readonly string $allowedMethods
+  )
   {
     $this->method = $_SERVER["REQUEST_METHOD"];
     if( !$this->isMethodAllowed() ) {
@@ -50,11 +53,11 @@ class Request
    */
   private function isResourceValid(): bool
   {
-    return $this->resource and in_array( $this->resource, ALLOWED_ENDPOINTS );
+    return $this->resource and in_array( $this->resource, $this-> allowedEndpoints );
   }
   private function isMethodAllowed(): bool
   {
-    return in_array( $this->method, explode(',', ALLOWED_METHODS) );
+    return in_array( $this->method, explode(',', $this-> allowedMethods) );
   }
   /**
    * Parse the query string and return an array of key=>value pairs
