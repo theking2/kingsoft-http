@@ -2,27 +2,65 @@
 
 namespace Kingsoft\Http;
 
+/**
+ * RequestMethods
+ */
+enum RequestMethod: string
+{
+  case Options = "OPTIONS";
+  case Get = "GET";
+  case Post = "POST";
+  case Put = "PUT";
+  case Delete = "DELETE";
+  case Patch = "PATCH";
+  case Head = "HEAD";
+
+}
+/**
+ * Request
+ */
 class Request
 {
+  /** @var string $method that is requested */
   public readonly string $method;
-  public readonly array $uri;
+  /** @var array $methodHandlers callables for the methods signature($id, $query)*/
+  public array $methodHandlers = [];
+  /** @var string $resource name of the requested resource */
   public readonly string $resource;
+  /** @var int|string|null $id id of the requested resource */
   public readonly int|string|null $id;
+  /** @var array|null $query query parameters as key value array */
   public readonly array|null $query;
+  
+  /**
+   * __construct create a new Request object
+   * Parse the request and set the properties
+   * @param  array $allowedEndpoints list of allowed endpoints
+   * @param  string $allowedMethods comma separated list of allowed methods
+   * @throws \InvalidArgumentException
+   *
+   * @return void
+   */
   public function __construct(
     readonly array $allowedEndpoints,
     readonly string $allowedMethods
-  )
-  {
+  ) {
+
     $this->method = $_SERVER["REQUEST_METHOD"];
     if( !$this->isMethodAllowed() ) {
       throw new \InvalidArgumentException( 'Method not allowed' );
     }
 
-    if( $this->method === 'OPTIONS' ) {
-      return;
-    }
+    /* if the request method is OPTIONS, we don't need to parse the request further */
+    if( $this->method === RequestMethod::Options->value ) {
+      (new Response( StatusCode::OK, null, $this-> allowedMethods, null, null, null, null))
+      -> sendAccessControlAllowMethods()
+      -> sendAccessControlAllowHeaders()
+      -> sendAccessControlAllowOrigin()
+      -> sendAccessControlMaxAge();
 
+      exit;
+    }
     /**
      * get the endpoint from the request
      * e.g. /api/index.php/<endpoint>[/<id>] or /api/index.php/<endpoint>?<query>
@@ -42,22 +80,49 @@ class Request
     if( !$this->isResourceValid() ) {
       throw new \InvalidArgumentException( 'Resource not found' );
     }
-    $queryString    = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_QUERY );
-    $this->query    = $this->parseParameters( $queryString );
+    $queryString = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_QUERY );
+    $this->query = $this->parseParameters( $queryString );
+  }
+  /**
+   * addMethodHandler add a callable for a request method
+   *
+   * @param  mixed $requestMethod
+   * @param  mixed $requestHandler
+   * @return self
+   */
+  public function addMethodHandler( RequestMethod $requestMethod, callable $requestHandler ): self
+  {
+    $this->methodHandlers[ $requestMethod->value ] = $requestHandler;
+    return $this;
   }
 
   /**
-   * CHeck if a the request contains a valid entity name
+   * handleRequest call the method handler for the requested method
+   *
+   * @return void
+   */
+  public function handleRequest(): void
+  {
+    $this->methodHandlers[ $this->method ]( $this->id, $this->query );
+  }
+
+  /**
+   * isResourceValid check if the requested resource is available
    *
    * @return bool
    */
   private function isResourceValid(): bool
   {
-    return $this->resource and in_array( $this->resource, $this-> allowedEndpoints );
+    return $this->resource and in_array( $this->resource, $this->allowedEndpoints );
   }
+  /**
+   * isMethodAllowed check if the requested method is allowed
+   *
+   * @return bool
+   */
   private function isMethodAllowed(): bool
   {
-    return in_array( $this->method, explode(',', $this-> allowedMethods) );
+    return in_array( $this->method, explode( ',', $this->allowedMethods ) );
   }
   /**
    * Parse the query string and return an array of key=>value pairs
@@ -79,5 +144,6 @@ class Request
       return null;
     }
   }
+
 
 }
