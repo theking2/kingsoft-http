@@ -2,17 +2,20 @@
 
 namespace Kingsoft\Http;
 
-enum ApplicationContentTypeString: string
+enum ContentTypeString: string
 {
-	case APPLICATION_JSON = 'application/json';
-	case APPLICATION_PROBLEM_JSON = 'application/problem+json';
-	case APPLICATION_XML = 'application/xml';
-	case APPLICATION_PROBLEM_XML = 'application/problem+xml';
+	case TextPlain = 'text/plain';
+	case TextHtml = 'text/html';
+	case Json = 'application/json';
+	case JsonProblem = 'application/problem+json';
+	case Xml = 'application/xml';
+	case XmlProblem = 'application/problem+xml';
 }
-enum ApplicationType: string
+enum ContentType: string
 {
-	case JSON = 'json';
-	case XML = 'xml';
+	case Json = 'json';
+	case Xml = 'xml';
+	case Text = 'text';
 }
 
 class Response
@@ -21,9 +24,10 @@ class Response
 		readonly StatusCode $statusCode,
 		readonly string|null $body,
 		readonly string|null $allowedMethods = 'OPTIONS,GET,POST,PUT,DELETE',
+		readonly ContentType|null $contentType = ContentType::Text,
+		readonly string|null $allowHeaders = 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With',
+		readonly string|null $allowOrigin = '*',
 		readonly string|null $etag,
-		readonly string|null $headers = 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With',
-		readonly string|null $origin = '*',
 		readonly int|null $maxAge = 3600,
 
 	) {
@@ -82,7 +86,7 @@ class Response
 	 */
 	public function sendAccessControlAllowOrigin(): self
 	{
-		header( "Access-Control-Allow-Origin: " . ( $this->origin ?? '*' ) );
+		header( "Access-Control-Allow-Origin: " . ( $this->allowOrigin ?? '*' ) );
 		return $this;
 	}
 	/**
@@ -112,7 +116,7 @@ class Response
 	 */
 	public function sendAccessControlAllowHeaders(): self
 	{
-		header( "Access-Control-Allow-Headers: " . ( $this->headers ?? 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With' ) );
+		header( "Access-Control-Allow-Headers: " . ( $this->allowHeaders ?? 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With' ) );
 		return $this;
 	}
 
@@ -133,18 +137,20 @@ class Response
 	 * @param  mixed $httpStatusCode
 	 * @return Response
 	 */
-	public function sendContentType( ApplicationType|null $type = ApplicationType::JSON ): self
+	public function sendContentType( ): self
 	{
 		$contentType = null;
 		if( $this->statusCode->value >= 400 && $this->statusCode->value < 600 ) {
-			$contentType = match ( $type ) {
-				ApplicationType::JSON => ApplicationContentTypeString::APPLICATION_PROBLEM_JSON,
-				ApplicationType::XML => ApplicationContentTypeString::APPLICATION_PROBLEM_XML,
+			$contentType = match ( $this-> contentType) {
+				ContentType::Json => ContentTypeString::JsonProblem,
+				ContentType::Xml => ContentTypeString::XmlProblem,
+				ContentType::Text => ContentTypeString::TextPlain,
 			};
 		} else {
-			$contentType = match ( $type ) {
-				ApplicationType::JSON => ApplicationContentTypeString::APPLICATION_JSON,
-				ApplicationType::XML => ApplicationContentTypeString::APPLICATION_XML,
+			$contentType = match ( $this-> contentType ) {
+				ContentType::Json => ContentTypeString::Json,
+				ContentType::Xml => ContentTypeString::Xml,
+				ContentType::Text => ContentTypeString::TextPlain,
 			};
 		}
 		header( "Content-Type: " . ( $contentType ?? 'application/json' ) . "; charset=UTF-8" );
