@@ -1,0 +1,19 @@
+{
+    "name": "theking2/http",
+    "description": "Http Request/Response handler",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Kingsoft\\Http\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "theking2",
+            "email": "theking2@king.ma"
+        }
+    ],
+    "minimum-stability": "RC",
+    "require": {}
+}
