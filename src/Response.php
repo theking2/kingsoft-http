@@ -119,23 +119,27 @@ class Response
 		 * @param  ContentType $type
 		 * @param  callable $include_etag
 		 */
-		public static function sendPayload(array|object $payload, ?callable $get_etag, ContentType|null $type): void
+		public static function sendPayload(array|object|null $payload, ?callable $get_etag, ContentType|null $type): void
 		{
+			if( $get_etag ) {
+				header( 'ETag: ' . $get_etag() )
+			}
+			if( $payload === null ) {
+				exit();
+			}
 			match( $type ) {
 				ContentType::Json => self::sendContentType( ContentType::Json ),
 				ContentType::Xml => self::sendContentType( ContentType::Xml ),
 				ContentType::Text => self::sendContentType( ContentType::Text ),
 				default => self::sendContentType( ContentType::Json )
 			};
+			
 			exit( match( $type ) {
 				ContentType::Json => json_encode( $payload ),
 				ContentType::Xml => xmlrpc_encode( $payload ),
 				ContentType::Text => serialize( $payload ),
 				default => json_encode( $payload )
 			});
-			if( $get_etag ) {
-				header( 'ETag: ' . $get_etag() )
-			}
 		}
 
 }
