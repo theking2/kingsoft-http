@@ -20,12 +20,13 @@ enum ContentType: string
 
 class Response
 {
-	public function __construct(
-		readonly StatusCode $statusCode,
-		readonly string|null $body,
-	) {
-	}
-
+	
+	/**
+	 * decodeHttpResponse
+	 *
+	 * @param  mixed $statusCode
+	 * @return string
+	 */
 	private static function decodeHttpResponse(StatusCode $statusCode): string
 	{
 		return match ( $statusCode ) {
@@ -76,9 +77,10 @@ class Response
 	/**
 	 * sendStatusCode
 	 *
-	 * @return self
+	 * @param  mixed $statusCode
+	 * @return void
 	 */
-	public static function sendStatusCode(StatusCode $statusCode): self
+	public static function sendStatusCode(StatusCode $statusCode): void
 	{
 		header_remove('x-powered-by');
 		header(
@@ -88,7 +90,7 @@ class Response
 				self::decodeHttpResponse( $statusCode )
 			)
 		);
-		return $this;
+
 	}
 
 }
