@@ -115,8 +115,11 @@ class Response
 		/**
 		 * sendPayload - Send payload
 		 * Side effect: exit
+		 * @param  array|object $payload
+		 * @param  ContentType $type
+		 * @param  callable $include_etag
 		 */
-		public static function sendPayload(array|object $payload, ContentType|null $type): void
+		public static function sendPayload(array|object $payload, ContentType|null $type, ?callable $get_etag): void
 		{
 			match( $type ) {
 				ContentType::Json => self::sendContentType( ContentType::Json ),
@@ -130,6 +133,9 @@ class Response
 				ContentType::Text => serialize( $payload ),
 				default => json_encode( $payload )
 			});
+			if( $get_etag ) {
+				header( 'ETag: ' . $get_etag() )
+			}
 		}
 
 }
