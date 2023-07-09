@@ -119,7 +119,7 @@ class Response
 		 * @param  ContentType $type
 		 * @param  callable $include_etag
 		 */
-		public static function sendPayload(array|object $payload, ContentType|null $type, ?callable $get_etag): void
+		public static function sendPayload(array|object $payload, ?callable $get_etag, ContentType|null $type): void
 		{
 			match( $type ) {
 				ContentType::Json => self::sendContentType( ContentType::Json ),
