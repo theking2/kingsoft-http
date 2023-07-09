@@ -122,7 +122,7 @@ class Response
 		public static function sendPayload(array|object|null $payload, ?callable $get_etag, ContentType|null $type): void
 		{
 			if( $get_etag ) {
-				header( 'ETag: ' . $get_etag() )
+				header( 'ETag: ' . $get_etag() );
 			}
 			if( $payload === null ) {
 				exit();
