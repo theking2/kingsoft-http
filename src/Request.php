@@ -99,7 +99,7 @@ class Request
    */
   public function handleRequest(): void
   {
-    $this->methodHandlers[ $this->method ]( $this )->sendAll();
+    $this->methodHandlers[ $this->method ]( $this );
   }
 
   /**
