@@ -121,7 +121,7 @@ class Response
 	 */
 	public static function sendPayload(
 		array|object|null $payload,
-		?callable $get_etag,
+		?callable $get_etag = null,
 		?ContentType $type = ContentType::Json ): void
 	{
 		if( $get_etag ) {
