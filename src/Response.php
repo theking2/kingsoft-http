@@ -115,9 +115,9 @@ class Response
 	/**
 	 * sendPayload - Send payload
 	 * Side effect: exit
-	 * @param  array|object $payload
-	 * @param  callable $get_etag
-	 * @param  ContentType $type
+	 * @param  array|object|null $payload - payload to send, if null, exit
+	 * @param  callable $get_etag - function to get etag, even if payload is null
+	 * @param  ContentType $type - content type, default json
 	 */
 	public static function sendPayload(
 		array|object|null $payload,
