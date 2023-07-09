@@ -48,7 +48,8 @@ class Request
 
     $this->method = $_SERVER["REQUEST_METHOD"];
     if( !$this->isMethodAllowed() ) {
-      throw new \InvalidArgumentException( 'Method not allowed' );
+      Response::sendStatusCode( StatusCode::MethodNotAllowed );
+      exit();
     }
 
     /* if the request method is OPTIONS, we don't need to parse the request further */
@@ -77,7 +78,8 @@ class Request
 
     $this->resource = $uri[1];
     if( !$this->isResourceValid() ) {
-      throw new \InvalidArgumentException( 'Resource not found' );
+      Response::sendStatusCode( StatusCode::NotFound );
+      Response::sendPayload( [ 'error' => "Resource $this->resource not found" ], ContentType::Json );
     }
     $queryString = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_QUERY );
     $this->query = $this->parseParameters( $queryString );
