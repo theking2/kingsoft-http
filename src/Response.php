@@ -90,7 +90,27 @@ class Response
 				self::decodeHttpResponse( $statusCode )
 			)
 		);
-
-	}
+	}		
+		/**
+		 * sendContentType - Send content type header
+		 *
+		 * @param  mixed $contentType
+		 * @return void
+		 */
+		public static function sendContentType(ContentType $contentType): void
+		{
+			header_remove('content-type');
+			header(
+				sprintf(
+					'Content-Type: %s',
+					match ( $contentType ) {
+						ContentType::Json => ContentTypeString::Json,
+						ContentType::Xml => ContentTypeString::Xml,
+						ContentType::Text => ContentTypeString::TextPlain,
+						default => ContentTypeString::TextPlain
+					}
+				)
+			);
+		}
 
 }
