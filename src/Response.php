@@ -104,10 +104,10 @@ class Response
 				sprintf(
 					'Content-Type: %s',
 					match ( $contentType ) {
-						ContentType::Json => ContentTypeString::Json,
-						ContentType::Xml => ContentTypeString::Xml,
-						ContentType::Text => ContentTypeString::TextPlain,
-						default => ContentTypeString::TextPlain
+						ContentType::Json => ContentTypeString::Json->value,
+						ContentType::Xml => ContentTypeString::Xml->value,
+						ContentType::Text => ContentTypeString::TextPlain->value,
+						default => ContentTypeString::TextPlain->value
 					}
 				)
 			);
