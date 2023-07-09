@@ -53,8 +53,11 @@ class Request
 
     /* if the request method is OPTIONS, we don't need to parse the request further */
     if( $this->method === RequestMethod::Options->value ) {
-      ( new Response( StatusCode::OK, null, $this->allowedMethods, null, null, null, null ) )
-        ->sendAll();
+      Response::sendStatusCode( StatusCode::NoContent );
+      header( 'Access-Control-Allow-Methods: ' . $this->allowedMethods );
+      header( 'Access-Control-Allow-Headers:  Access-Control-Allow-Headers, Access-Control-Request-Method, Origin' );
+      header( 'Access-Control-Max-Age: ' . SETTINGS['api']['maxage'] );
+
       exit;
     }
     /**
