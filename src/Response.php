@@ -116,12 +116,12 @@ class Response
 	 * sendPayload - Send payload
 	 * Side effect: exit
 	 * @param  array|object $payload
+	 * @param  callable|null $get_etag
 	 * @param  ContentType $type
-	 * @param  callable $include_etag
 	 */
 	public static function sendPayload(
 		array|object|null $payload,
-		?callable $get_etag = null,
+		?callable|null $get_etag = null,
 		?ContentType $type = ContentType::Json ): void
 	{
 		if( $get_etag ) {
