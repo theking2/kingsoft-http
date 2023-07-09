@@ -20,22 +20,16 @@ enum ContentType: string
 
 class Response
 {
-	public function __construct(
-		readonly StatusCode $statusCode,
-		readonly string|null $body,
-		readonly string|null $allowedMethods = 'OPTIONS,GET,POST,PUT,DELETE',
-		readonly ContentType|null $contentType = ContentType::Text,
-		readonly string|null $allowHeaders = 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With',
-		readonly string|null $allowOrigin = '*',
-		readonly string|null $etag,
-		readonly int|null $maxAge = 3600,
-
-	) {
-	}
-
-	private function decodeHttpResponse(): string
+	
+	/**
+	 * decodeHttpResponse
+	 *
+	 * @param  mixed $statusCode
+	 * @return string
+	 */
+	private static function decodeHttpResponse(StatusCode $statusCode): string
 	{
-		return match ( $this->statusCode ) {
+		return match ( $statusCode ) {
 			StatusCode::Continue => 'Continue',
 			StatusCode::SwitchingProtocols => 'Switching Protocols',
 			StatusCode::OK => 'OK',
@@ -79,113 +73,24 @@ class Response
 			default => 'Unknown HTTP status code'
 		};
 	}
-	/**
-	 * sendAccessControlAllowOrigin` send the Access-Control-Allow-Origin header
-	 *
-	 * @return self
-	 */
-	public function sendAccessControlAllowOrigin(): self
-	{
-		header( "Access-Control-Allow-Origin: " . ( $this->allowOrigin ?? '*' ) );
-		return $this;
-	}
-	/**
-	 * sendAccessControlAllowMethods send the Access-Control-Allow-Methods header
-	 *
-	 * @return Response
-	 */
-	public function sendAccessControlAllowMethods(): self
-	{
-		header( "Access-Control-Allow-Methods: " . ( $this->allowedMethods ?? 'OPTIONS,GET,POST,PUT,DELETE' ) );
-		return $this;
-	}
-	/**
-	 * sendAccessControlMaxAge send the Access-Control-Max-Age header
-	 *
-	 * @return self
-	 */
-	public function sendAccessControlMaxAge(): self
-	{
-		header( "Access-Control-Max-Age: " . ( $this->maxAge ?? 3600 ) );
-		return $this;
-	}
-	/**
-	 * sendAccessControlAllowHeaders send the Access-Control-Allow-Headers header
-	 *
-	 * @return Response
-	 */
-	public function sendAccessControlAllowHeaders(): self
-	{
-		header( "Access-Control-Allow-Headers: " . ( $this->allowHeaders ?? 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With' ) );
-		return $this;
-	}
 
-	/**
-	 * sendETag send the ETag header based on the body
-	 *
-	 * @return Response
-	 */
-	public function sendETag(): self
-	{
-		header( "ETag: " . $this->etag ?? hash( 'md5', $this->body ) );
-		return $this;
-	}
-	/**
-	 * sendContentTypeJson based on the HTTP status code
-	 * json or problem+json
-	 *
-	 * @param  mixed $httpStatusCode
-	 * @return Response
-	 */
-	public function sendContentType(): self
-	{
-		$contentType = null;
-		if( $this->statusCode->value >= 400 && $this->statusCode->value < 600 ) {
-			$contentType = match ( $this->contentType ) {
-				ContentType::Json => ContentTypeString::JsonProblem,
-				ContentType::Xml => ContentTypeString::XmlProblem,
-				ContentType::Text => ContentTypeString::TextPlain,
-			};
-		} else {
-			$contentType = match ( $this->contentType ) {
-				ContentType::Json => ContentTypeString::Json,
-				ContentType::Xml => ContentTypeString::Xml,
-				ContentType::Text => ContentTypeString::TextPlain,
-			};
-		}
-		header( "Content-Type: " . ( $contentType->value ?? 'application/json' ) . "; charset=UTF-8" );
-		return $this;
-	}
 	/**
 	 * sendStatusCode
 	 *
-	 * @return self
+	 * @param  mixed $statusCode
+	 * @return void
 	 */
-	public function sendStatusCode(): self
+	public static function sendStatusCode(StatusCode $statusCode): void
 	{
+		header_remove('x-powered-by');
 		header(
 			sprintf(
 				'HTTP/1.1 %d %s',
-				$this->statusCode->value,
-				self::decodeHttpResponse()
+				$statusCode->value,
+				self::decodeHttpResponse( $statusCode )
 			)
 		);
-		return $this;
-	}
 
-	public function sendAll(): self
-	{
-		$this->sendStatusCode();
-		$this->sendContentType();
-		$this->sendAccessControlAllowOrigin();
-		$this->sendAccessControlAllowMethods();
-		$this->sendAccessControlAllowHeaders();
-		$this->sendAccessControlMaxAge();
-		$this->sendETag();
-		if( $this->body ) {
-			echo $this->body;
-		}
-		return $this;
 	}
 
 }
