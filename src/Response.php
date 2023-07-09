@@ -20,14 +20,14 @@ enum ContentType: string
 
 class Response
 {
-	
+
 	/**
 	 * decodeHttpResponse
 	 *
 	 * @param  mixed $statusCode
 	 * @return string
 	 */
-	private static function decodeHttpResponse(StatusCode $statusCode): string
+	private static function decodeHttpResponse( StatusCode $statusCode ): string
 	{
 		return match ( $statusCode ) {
 			StatusCode::Continue => 'Continue',
@@ -80,9 +80,9 @@ class Response
 	 * @param  mixed $statusCode
 	 * @return void
 	 */
-	public static function sendStatusCode(StatusCode $statusCode): void
+	public static function sendStatusCode( StatusCode $statusCode ): void
 	{
-		header_remove('x-powered-by');
+		header_remove( 'x-powered-by' );
 		header(
 			sprintf(
 				'HTTP/1.1 %d %s',
@@ -90,56 +90,59 @@ class Response
 				self::decodeHttpResponse( $statusCode )
 			)
 		);
-	}		
-		/**
-		 * sendContentType - Send content type header
-		 *
-		 * @param  mixed $contentType
-		 * @return void
-		 */
-		public static function sendContentType(ContentType $contentType): void
-		{
-			header_remove('content-type');
-			header(
-				sprintf(
-					'Content-Type: %s',
-					match ( $contentType ) {
-						ContentType::Json => ContentTypeString::Json->value,
-						ContentType::Xml => ContentTypeString::Xml->value,
-						ContentType::Text => ContentTypeString::TextPlain->value,
-						default => ContentTypeString::TextPlain->value
-					}
-				)
-			);
+	}
+	/**
+	 * sendContentType - Send content type header
+	 *
+	 * @param  mixed $contentType
+	 * @return void
+	 */
+	public static function sendContentType( ContentType $contentType ): void
+	{
+		header_remove( 'content-type' );
+		header(
+			sprintf(
+				'Content-Type: %s',
+				match ( $contentType ) {
+					ContentType::Json => ContentTypeString::Json->value,
+					ContentType::Xml => ContentTypeString::Xml->value,
+					ContentType::Text => ContentTypeString::TextPlain->value,
+					default => ContentTypeString::TextPlain->value
+				}
+			)
+		);
+	}
+	/**
+	 * sendPayload - Send payload
+	 * Side effect: exit
+	 * @param  array|object $payload
+	 * @param  ContentType $type
+	 * @param  callable $include_etag
+	 */
+	public static function sendPayload(
+		array|object|null $payload,
+		?callable $get_etag,
+		?ContentType $type = ContentType::Json ): void
+	{
+		if( $get_etag ) {
+			header( 'ETag: ' . $get_etag() );
 		}
-		/**
-		 * sendPayload - Send payload
-		 * Side effect: exit
-		 * @param  array|object $payload
-		 * @param  ContentType $type
-		 * @param  callable $include_etag
-		 */
-		public static function sendPayload(array|object|null $payload, ?callable $get_etag, ContentType|null $type): void
-		{
-			if( $get_etag ) {
-				header( 'ETag: ' . $get_etag() );
-			}
-			if( $payload === null ) {
-				exit();
-			}
-			match( $type ) {
-				ContentType::Json => self::sendContentType( ContentType::Json ),
-				ContentType::Xml => self::sendContentType( ContentType::Xml ),
-				ContentType::Text => self::sendContentType( ContentType::Text ),
-				default => self::sendContentType( ContentType::Json )
-			};
-			
-			exit( match( $type ) {
-				ContentType::Json => json_encode( $payload ),
-				ContentType::Xml => xmlrpc_encode( $payload ),
-				ContentType::Text => serialize( $payload ),
-				default => json_encode( $payload )
-			});
+		if( $payload === null ) {
+			exit();
 		}
+		match ( $type ) {
+			ContentType::Json => self::sendContentType( ContentType::Json ),
+			ContentType::Xml => self::sendContentType( ContentType::Xml ),
+			ContentType::Text => self::sendContentType( ContentType::Text ),
+			default => self::sendContentType( ContentType::Json )
+		};
+
+		exit( match ( $type ) {
+			ContentType::Json => json_encode( $payload ),
+			ContentType::Xml => xmlrpc_encode( $payload ),
+			ContentType::Text => serialize( $payload ),
+			default => json_encode( $payload )
+		} );
+	}
 
 }
