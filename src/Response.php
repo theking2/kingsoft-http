@@ -112,5 +112,24 @@ class Response
 				)
 			);
 		}
+		/**
+		 * sendPayload - Send payload
+		 * Side effect: exit
+		 */
+		public static function sendPayload(array|object $payload, ContentType|null $type): void
+		{
+			match( $type ) {
+				ContentType::Json => self::sendContentType( ContentType::Json ),
+				ContentType::Xml => self::sendContentType( ContentType::Xml ),
+				ContentType::Text => self::sendContentType( ContentType::Text ),
+				default => self::sendContentType( ContentType::Json )
+			};
+			exit( match( $type ) {
+				ContentType::Json => json_encode( $payload ),
+				ContentType::Xml => xmlrpc_encode( $payload ),
+				ContentType::Text => serialize( $payload ),
+				default => json_encode( $payload )
+			});
+		}
 
 }
