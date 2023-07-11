@@ -148,19 +148,23 @@ class Response
 	/**
 	 * sendMessage Send a fixed message
 	 * @side-effect exit
+	 * @param string $result
+	 * @param int $code
+	 * @param string $message
+	 * @param ContentTYpe $type
 	 *
 	 * @return void
 	 */
 	public static function sendMessage(
-		string $message,
-		int $code = 0,
+		string $result,
+		?int $code = 0,
+		?string $message,
 		?ContentType $type = ContentType::Json,
-		?string $description = null
 	) {
 		$payload = [
+			"result"=> $result,
 			"message"=> $message,
-			"code" => $code,
-			"description"=> $description
+			"code" => $code
 		];
 		self::sendPayload($payload, null, $type);
 	}
