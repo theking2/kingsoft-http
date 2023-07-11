@@ -144,5 +144,24 @@ class Response
 			default => json_encode( $payload )
 		} );
 	}
-
+		
+	/**
+	 * sendMessage Send a fixed message
+	 * @side-effect exit
+	 *
+	 * @return void
+	 */
+	public static function sendMessage(
+		string $message,
+		int $code = 0,
+		?ContentType $type = ContentType::Json,
+		?string $description = null
+	) {
+		$payload = [
+			"message"=> $message,
+			"code" => $code,
+			"description"=> $description
+		];
+		self::sendPayload($payload, null, $type);
+	}
 }
