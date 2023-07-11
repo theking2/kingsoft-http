@@ -83,13 +83,8 @@ class Response
 	public static function sendStatusCode( StatusCode $statusCode ): void
 	{
 		header_remove( 'x-powered-by' );
-		header(
-			sprintf(
-				'HTTP/1.1 %d %s',
-				$statusCode->value,
-				self::decodeHttpResponse( $statusCode )
-			)
-		);
+		http_response_code( $statusCode->value );
+
 	}
 	/**
 	 * sendContentType - Send content type header
@@ -144,7 +139,7 @@ class Response
 			default => json_encode( $payload )
 		} );
 	}
-		
+
 	/**
 	 * sendMessage Send a fixed message
 	 * @side-effect exit
@@ -161,11 +156,11 @@ class Response
 		?string $message,
 		?ContentType $type = ContentType::Json,
 	) {
-		$payload = [
-			"result"=> $result,
-			"message"=> $message,
+		$payload = [ 
+			"result" => $result,
+			"message" => $message,
 			"code" => $code
 		];
-		self::sendPayload($payload, null, $type);
+		self::sendPayload( $payload, null, $type );
 	}
 }
