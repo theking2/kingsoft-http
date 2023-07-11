@@ -79,7 +79,7 @@ class Request
     $this->resource = $uri[1];
     if( !$this->isResourceValid() ) {
       Response::sendStatusCode( StatusCode::NotFound );
-      Response::sendPayload( [ 'error' => "Resource $this->resource not found" ], ContentType::Json );
+      Response::sendMessage( "unknown resource", 0, "Resource $this->resource not found" );
     }
     $queryString = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_QUERY );
     $this->query = $this->parseParameters( $queryString );
