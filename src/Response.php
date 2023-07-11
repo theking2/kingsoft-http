@@ -120,7 +120,7 @@ class Response
 	 * @param  ContentType $type - content type, default json
 	 */
 	public static function sendPayload(
-		array|object|null $payload,
+		array|object|null &$payload,
 		?callable $get_etag = null,
 		?ContentType $type = ContentType::Json ): void
 	{
