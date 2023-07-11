@@ -153,7 +153,7 @@ class Response
 	public static function sendMessage(
 		string $result,
 		?int $code = 0,
-		?string $message,
+		?string $message = "",
 		?ContentType $type = ContentType::Json,
 	) {
 		$payload = [ 
