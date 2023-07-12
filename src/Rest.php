@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+namespace Kingsoft;
 use Kingsoft\Http\Request;
 use Kingsoft\Http\RequestMethod as RM;
 use Kingsoft\Http\Response;
