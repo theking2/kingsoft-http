@@ -54,13 +54,14 @@ class Request
       Response::sendStatusCode( StatusCode::MethodNotAllowed );
       exit();
     }
+    header( 'Access-Control-Allow-Origin: ' . $this->allowedOrigin );
+    header( 'Connection: Keep-Alive' );
 
     /* if the request method is OPTIONS, we don't need to parse the request further */
     if( $this->method === RequestMethod::Options->value ) {
       Response::sendStatusCode( StatusCode::NoContent );
-      header( 'Access-Control-Allow-Origin: ' . $this->allowedOrigin	);
       header( 'Access-Control-Allow-Methods: ' . $this->allowedMethods );
-      header( 'Access-Control-Allow-Headers:  Access-Control-Allow-Origen, Access-Control-Allow-Headers, Access-Control-Request-Method, Origin' );
+      header( 'Access-Control-Allow-Headers: Access-Control-Allow-Origen, Access-Control-Allow-Headers, Access-Control-Request-Method, Origin' );
       header( 'Access-Control-Max-Age: ' . $this->maxAge );
 
       exit;
