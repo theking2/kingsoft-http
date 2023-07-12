@@ -6,7 +6,6 @@ use Kingsoft\Http\RequestMethod as RM;
 use Kingsoft\Http\Response;
 use Kingsoft\Http\StatusCode;
 use Kingsoft\Http\ContentType;
-use Kingsoft\Persist\Base as PersistBase;
 
 abstract class Rest
 {
@@ -44,28 +43,6 @@ abstract class Rest
       exit( $this->createExceptionBody( $e ));
     }
   }
-  /**
-   * Get a resource by id
-   * @param  Request $request
-   * @return \Kingsoft\Persist\Base
-   * @throws \Exception, \InvalidArgumentException, \Kingsoft\DB\DatabaseException, \Kingsoft\Persist\RecordNotFoundException
-   * side effect: sends a response and exits if the resource is not found
-   */
-  protected function getResource(): PersistBase
-  {
-    if( !isset( $this->request->id ) ) {
-      Response::sendStatusCode( StatusCode::BadRequest );
-      Response::sendMessage( 'error', 0, 'No id provided' );
-      exit;
-    }
-    if( $obj = new( $this->resource_handler )( $this->request->id ) and $obj->isRecord() ) {
-      return $obj;
 
-    } else {
-      Response::sendStatusCode( StatusCode::NotFound );
-      Response::sendMessage( 'error', 0, 'Not found' );
-      exit;
-    }
-  }
 
 }
