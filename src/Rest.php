@@ -19,7 +19,7 @@ abstract class Rest
   protected abstract function createExceptionBody( \Throwable $e ): string;
 
   protected string $resource_handler;
-  public function __construct( publicrequest )
+  public function __construct( Request $request )
   {
     try {
       $request
