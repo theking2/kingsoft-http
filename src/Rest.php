@@ -5,8 +5,8 @@ use Kingsoft\Http\Request;
 use Kingsoft\Http\RequestMethod as RM;
 use Kingsoft\Http\Response;
 use Kingsoft\Http\StatusCode;
-use Kingsoft\Db\DatabaseException;
 use Kingsoft\Http\ContentType;
+use Kingsoft\Persist\Base as PersistBase;
 
 abstract class Rest
 {
@@ -17,6 +17,7 @@ abstract class Rest
   protected abstract function head(): void;
 
   protected abstract function getNamespace(): string;
+  protected abstract function createExceptionBody( \Throwable $e ): string;
 
   protected string $resource_handler;
   public function __construct( readonly Request $request )
@@ -35,20 +36,12 @@ abstract class Rest
     } catch ( \InvalidArgumentException $e ) {
       Response::sendStatusCode( StatusCode::BadRequest );
       Response::sendContentType( ContentType::Json );
-      echo $this->createExceptionBody( $e );
-      exit();
-
-    } catch ( DatabaseException $e ) {
-      Response::sendStatusCode( StatusCode::InternalServerError );
-      Response::sendContentType( ContentType::Json );
-      echo $this->createExceptionBody( $e );
-      exit();
+      exit( $this->createExceptionBody( $e ) );
 
     } catch ( \Exception $e ) {
       Response::sendStatusCode( StatusCode::InternalServerError );
       Response::sendContentType( ContentType::Json );
-      echo $this->createExceptionBody( $e );
-      exit();
+      exit( $this->createExceptionBody( $e ));
     }
   }
   /**
@@ -58,7 +51,7 @@ abstract class Rest
    * @throws \Exception, \InvalidArgumentException, \Kingsoft\DB\DatabaseException, \Kingsoft\Persist\RecordNotFoundException
    * side effect: sends a response and exits if the resource is not found
    */
-  protected function getResource(): \Kingsoft\Persist\Base
+  protected function getResource(): PersistBase
   {
     if( !isset( $this->request->id ) ) {
       Response::sendStatusCode( StatusCode::BadRequest );
@@ -74,28 +67,5 @@ abstract class Rest
       exit;
     }
   }
-  /**
-   * Create a JSON string from an exception
-   *
-   * @param  mixed $e
-   * @return string
-   */
-  protected function createExceptionBody( \Throwable $e ): string
-  {
-    // don't reveal internal errors
-    if( $e instanceof Kingsoft\DB\DatabaseException ) {
-      return json_encode( [ 
-        'result' => 'error',
-        'code' => $e->getCode(),
-        'type' => 'DatabaseException',
-        'message' => 'Internal error'
-      ] );
-    }
-    return json_encode( [ 
-      'result' => 'error',
-      'code' => $e->getCode(),
-      'type' => get_class( $e ),
-      'message' => $e->getMessage(),
-    ] );
-  }
+
 }
