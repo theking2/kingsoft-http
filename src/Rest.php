@@ -9,17 +9,17 @@ use Kingsoft\Http\ContentType;
 
 abstract class Rest
 {
-  protected abstract function get(): void;
-  protected abstract function post(): void;
-  protected abstract function put(): void;
-  protected abstract function delete(): void;
-  protected abstract function head(): void;
+  public abstract function get(): void;
+  public abstract function post(): void;
+  public abstract function put(): void;
+  public abstract function delete(): void;
+  public abstract function head(): void;
 
   protected abstract function getNamespace(): string;
   protected abstract function createExceptionBody( \Throwable $e ): string;
 
   protected string $resource_handler;
-  public function __construct( Request $request )
+  public function __construct( publicrequest )
   {
     try {
       $request
