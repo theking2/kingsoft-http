@@ -96,7 +96,7 @@ class Request
    * @param  mixed $requestHandler
    * @return self
    */
-  public function addMethodHandler( RequestMethod $requestMethod, callable $requestHandler ): self
+  public function addMethodHandler( RequestMethod $requestMethod, callable|array $requestHandler ): self
   {
     $this->methodHandlers[ $requestMethod->value ] = $requestHandler;
     return $this;
