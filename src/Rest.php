@@ -1,5 +1,5 @@
 <?php declare(strict_types=1);
-namespace Kingsoft;
+namespace Kingsoft\Http;
 
 use Kingsoft\Http\Request;
 use Kingsoft\Http\RequestMethod as RM;
