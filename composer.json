@@ -1,6 +1,6 @@
 {
     "name": "kingsoft/http",
-    "description": "Http Request/Response handler",
+    "description": "Http Request/Response handler. It's a simple and easy to use library to handle http request and response.",
     "type": "library",
     "license": "MIT",
     "autoload": {
