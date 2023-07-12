@@ -36,14 +36,17 @@ class Request
    * __construct create a new Request object
    * Parse the request and set the properties
    * @param  array $allowedEndpoints list of allowed endpoints
-   * @param  string $allowedMethods comma separated list of allowed methods
+   * @param  ?string $allowedOrigin comma separated list of allowed origins
+   * @param  ?string $allowedMethods comma separated list of allowed methods
    * @throws \InvalidArgumentException
    *
    * @return void
    */
   public function __construct(
     readonly array $allowedEndpoints,
-    readonly string $allowedMethods
+    readonly ?string $allowedMethods = 'GET,POST,PUT,DELETE,PATCH,OPTIONS',
+    readonly ?string $allowedOrigin = '*',
+    readonly ?int $maxAge = 86400
   ) {
 
     $this->method = $_SERVER["REQUEST_METHOD"];
@@ -55,9 +58,10 @@ class Request
     /* if the request method is OPTIONS, we don't need to parse the request further */
     if( $this->method === RequestMethod::Options->value ) {
       Response::sendStatusCode( StatusCode::NoContent );
+      header( 'Access-Control-Allow-Origin: ' . $this->allowedOrigin	);
       header( 'Access-Control-Allow-Methods: ' . $this->allowedMethods );
-      header( 'Access-Control-Allow-Headers:  Access-Control-Allow-Headers, Access-Control-Request-Method, Origin' );
-      header( 'Access-Control-Max-Age: ' . SETTINGS['api']['maxage'] );
+      header( 'Access-Control-Allow-Headers:  Access-Control-Allow-Origen, Access-Control-Allow-Headers, Access-Control-Request-Method, Origin' );
+      header( 'Access-Control-Max-Age: ' . $this->maxAge );
 
       exit;
     }
