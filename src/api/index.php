@@ -7,7 +7,7 @@ require 'RestImplementation.class.php';
 use Kingsoft\Http\Request;
 
 
-$api = new SbwMonitor( new Request(
+$api = new RestImplementation( new Request(
   SETTINGS['api']['allowedendpoints'],
   SETTINGS['api']['allowedmethods'] ?? 'OPTIONS,HEAD,GET,POST,PUT,DELETE',
   SETTINGS['api']['allowedorigin'] ?? '*',
