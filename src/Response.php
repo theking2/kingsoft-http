@@ -163,4 +163,20 @@ class Response
 		];
 		self::sendPayload( $payload, null, $type );
 	}
+
+	/**
+	 * sendError
+	 * @param string $message
+	 * @param int $code
+	 *
+	 * @return void
+	 */
+	public static function sendError(
+		string $message,
+		?int $code = 0,
+		?ContentType $type = ContentType::Json,
+	) {
+		self::sendStatusCode( StatusCode::InternalServerError );
+		self::sendMessage( 'error', $code, $message, $type );
+	}
 }
