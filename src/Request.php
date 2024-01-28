@@ -46,11 +46,16 @@ class Request
     readonly array $allowedEndpoints,
     readonly ?string $allowedMethods = 'GET,POST,PUT,DELETE,PATCH,OPTIONS',
     readonly ?string $allowedOrigin = '*',
-    readonly ?int $maxAge = 86400
+    readonly ?int $maxAge = 86400,
+    protected ?\Psr\Log\LoggerInterface $log = new \Psr\Log\NullLogger()
   ) {
 
     $this->method = $_SERVER["REQUEST_METHOD"];
+    $this->log->debug( "method " . $this->method, $_SERVER );
+
+
     if( !$this->isMethodAllowed() ) {
+      $this->log->notice( "Method not allowed " . $this->method, [ 'allowed' => $this->allowedMethods ] );
       Response::sendStatusCode( StatusCode::MethodNotAllowed );
       exit();
     }
@@ -59,6 +64,7 @@ class Request
 
     /* if the request method is OPTIONS, we don't need to parse the request further */
     if( $this->method === RequestMethod::Options->value ) {
+      $this->log->info( "OPTION" );
       Response::sendStatusCode( StatusCode::NoContent );
       header( 'Access-Control-Allow-Methods: ' . $this->allowedMethods );
       header( 'Access-Control-Allow-Headers: Access-Control-Allow-Origen, Access-Control-Allow-Headers, Access-Control-Request-Method, Origin' );
@@ -72,6 +78,7 @@ class Request
      * $uri[0] is always empty, $uri[1] is the endpoint
      */
     if( null === $path = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ) ) {
+      $this->log->alert( "URL parse error", [ 'url' => $_SERVER['REQUEST_URI'] ] );
       throw new \InvalidArgumentException( "invalid request uri" );
     }
     $uri = explode( '/', $path );
@@ -81,15 +88,20 @@ class Request
     if( isset( $uri[2] ) && $uri[2] === '' ) {
       unset( $uri[2] );
     }
+    $this->log->debug( "Query", $uri );
     $this->id = $uri[2] ?? null;
 
     $this->resource = $uri[1];
     if( !$this->isResourceValid() ) {
+      $this->log->info( "Invalid resource " . $this->resource );
+
       Response::sendStatusCode( StatusCode::NotFound );
       Response::sendMessage( "unknown resource", 0, "Resource $this->resource not found" );
     }
     $queryString = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_QUERY );
     $this->query = $this->parseParameters( $queryString );
+
+    $this->log->info( "Query " . $this->query );
   }
   /**
    * addMethodHandler add a callable for a request method
@@ -111,6 +123,7 @@ class Request
    */
   public function handleRequest(): void
   {
+    $this->log->debug( "Handle " . $this->method );
     $this->methodHandlers[ $this->method ]( $this );
   }
 
@@ -151,5 +164,18 @@ class Request
     } else {
       return null;
     }
+  }
+
+  /**
+   * setLogger 
+   *
+   * @param  mixed $loggerInterface
+   * @return Request
+   */
+  public function setLogger( \Psr\Log\LoggerInterface $loggerInterface ): Request
+  {
+    $this->logger = $loggerInterface;
+
+    return $this;
   }
 }
