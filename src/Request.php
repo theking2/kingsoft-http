@@ -8,12 +8,12 @@ namespace Kingsoft\Http;
 enum RequestMethod: string
 {
   case Options = "OPTIONS";
-  case Get = "GET";
-  case Post = "POST";
-  case Put = "PUT";
-  case Delete = "DELETE";
-  case Patch = "PATCH";
-  case Head = "HEAD";
+  case Get     = "GET";
+  case Post    = "POST";
+  case Put     = "PUT";
+  case Delete  = "DELETE";
+  case Patch   = "PATCH";
+  case Head    = "HEAD";
 
 }
 /**
@@ -71,8 +71,10 @@ class Request
      * e.g. /api/index.php/<endpoint>[/<id>] or /api/index.php/<endpoint>?<query>
      * $uri[0] is always empty, $uri[1] is the endpoint
      */
-    $path = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
-    $uri  = explode( '/', $path );
+    if( null === $path = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ) ) {
+      throw new \InvalidArgumentException( "invalid request uri" );
+    }
+    $uri = explode( '/', $path );
     /**
      * remove the trailing slash, from uri[2] if present
      */
