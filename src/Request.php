@@ -31,6 +31,8 @@ class Request
   public readonly int|string|null $id;
   /** @var array|null $query query parameters as key value array */
   public readonly array|null $query;
+  /** @var array|null $payload payload of the request */
+  public readonly array|null $payload;
 
   /**
    * __construct create a new Request object
@@ -51,7 +53,7 @@ class Request
   ) {
 
     $this->method = $_SERVER["REQUEST_METHOD"];
-    $this->log->debug( "method " . $this->method );
+    $this->log->debug( "Received " . $this->method );
 
 
     if( !$this->isMethodAllowed() ) {
@@ -64,7 +66,7 @@ class Request
 
     /* if the request method is OPTIONS, we don't need to parse the request further */
     if( $this->method === RequestMethod::Options->value ) {
-      $this->log->info( "OPTION" );
+      $this->log->info( "Handle OPTION" );
       Response::sendStatusCode( StatusCode::NoContent );
       header( 'Access-Control-Allow-Methods: ' . $this->allowedMethods );
       header( 'Access-Control-Allow-Headers: Access-Control-Allow-Origen, Access-Control-Allow-Headers, Access-Control-Request-Method, Origin' );
@@ -88,8 +90,9 @@ class Request
     if( isset( $uri[2] ) && $uri[2] === '' ) {
       unset( $uri[2] );
     }
-    $this->log->debug( "Query", $uri );
     $this->id = $uri[2] ?? null;
+    if( $this->id )
+      $this->log->debug( "ResourceID " . $this->id );
 
     $this->resource = $uri[1];
     if( !$this->isResourceValid() ) {
@@ -98,10 +101,10 @@ class Request
       Response::sendStatusCode( StatusCode::NotFound );
       Response::sendMessage( "unknown resource", 0, "Resource $this->resource not found" );
     }
-    $queryString = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_QUERY );
-    $this->query = $this->parseParameters( $queryString );
+    $queryString   = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_QUERY );
+    $this->query   = $this->parseParameters( $queryString );
+    $this->payload = json_decode( file_get_contents( 'php://input' ), true );
 
-    $this->log->info( "Query " . $this->query );
   }
   /**
    * addMethodHandler add a callable for a request method
@@ -123,7 +126,11 @@ class Request
    */
   public function handleRequest(): void
   {
-    $this->log->debug( "Handle " . $this->method );
+    $this->log->debug( "Handle " . $this->method, [ 
+      'id' => $this->id,
+      'query' => $this->query,
+      'payload' => $this->payload
+    ] );
     $this->methodHandlers[ $this->method ]( $this );
   }
 
@@ -157,8 +164,11 @@ class Request
     if( !is_null( $queryString ) ) {
       // parse the query string
       foreach( explode( '&', $queryString ) as $param ) {
-        $param               = explode( '=', $param );
-        $result[ $param[0] ] = '*' . str_replace( '*', '%', $param[1] ); // use the like operator
+        $keyvalue = explode( '=', $param );
+        if( count( $keyvalue ) !== 2 )
+          throw new \BadFunctionCallException( "malforemd param " . $param );
+
+        $result[ $keyvalue[0] ] = '*' . str_replace( '*', '%', $keyvalue[1] ); // use the like operator
       }
       return $result;
     } else {
