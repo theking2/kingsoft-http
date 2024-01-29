@@ -126,7 +126,8 @@ class Request
    */
   public function handleRequest(): void
   {
-    $this->log->debug( "Handle " . $this->method, [ 
+    $this->log->info( "Handle " . $this->method, [ 
+      'resource' => $this->resource,
       'id' => $this->id,
       'query' => $this->query,
       'payload' => $this->payload
