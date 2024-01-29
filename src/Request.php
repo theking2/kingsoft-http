@@ -51,7 +51,7 @@ class Request
   ) {
 
     $this->method = $_SERVER["REQUEST_METHOD"];
-    $this->log->debug( "method " . $this->method, $_SERVER );
+    $this->log->debug( "method " . $this->method );
 
 
     if( !$this->isMethodAllowed() ) {
