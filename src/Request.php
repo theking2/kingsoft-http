@@ -52,12 +52,14 @@ class Request
     protected ?\Psr\Log\LoggerInterface $log = new \Psr\Log\NullLogger()
   ) {
 
-    $this->method = $_SERVER["REQUEST_METHOD"];
-    $this->log->debug( "Received " . $this->method );
+
+    $this->method          = $_SERVER["REQUEST_METHOD"];
+    $requestInfo['method'] = $this->method;
+    $this->log->debug( "Request received", $requestInfo );
 
 
     if( !$this->isMethodAllowed() ) {
-      $this->log->notice( "Method not allowed " . $this->method, [ 'allowed' => $this->allowedMethods ] );
+      $this->log->notice( "Method not allowed" . $this->method, [ 'allowed' => $this->allowedMethods ] );
       Response::sendStatusCode( StatusCode::MethodNotAllowed );
       exit();
     }
@@ -81,30 +83,48 @@ class Request
      */
     if( null === $path = parse_url( str_replace( '\\\\', '\\', $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ) ) {
       $this->log->alert( "URL parse error", [ 'url' => $_SERVER['REQUEST_URI'] ] );
-      throw new \InvalidArgumentException( "invalid request uri" );
+      Response::sendStatusCode( StatusCode::BadRequest );
+      Response::sendMessage( "Invalid URL", 0, "Could not parse '" . $_SERVER['REQUEST_URI'] . "'" );
     }
-    $uri = explode( '/', $path );
+    $uri                     = explode( '/', $path );
+    $this->resource          = $uri[1];
+    $requestInfo['resource'] = $this->resource;
+    if( !$this->isResourceValid() ) {
+      $this->log->info( "Invalid resource", $requestInfo );
+
+      Response::sendStatusCode( StatusCode::NotFound );
+      Response::sendMessage( "unknown resource", 0, "Resource $this->resource not found" );
+    }
+    $this->log->debug( "Resource parsed", $requestInfo );
+
     /**
      * remove the trailing slash, from uri[2] if present
      */
     if( isset( $uri[2] ) && $uri[2] === '' ) {
       unset( $uri[2] );
     }
-    $this->id = $uri[2] ?? null;
+    $this->id          = $uri[2] ?? null;
+    $requestInfo['id'] = $this->id;
     if( $this->id )
-      $this->log->debug( "ResourceID " . $this->id );
+      $this->log->debug( "ResourceID parsed", $requestInfo );
 
-    $this->resource = $uri[1];
-    if( !$this->isResourceValid() ) {
-      $this->log->info( "Invalid resource " . $this->resource );
 
-      Response::sendStatusCode( StatusCode::NotFound );
-      Response::sendMessage( "unknown resource", 0, "Resource $this->resource not found" );
+    $queryString = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_QUERY );
+    $this->query = $this->parseParameters( $queryString );
+
+    if( $this->query ) {
+      $requestInfo['query'] = $this->query;
+      $this->log->debug( "Query parsed", $requestInfo );
     }
-    $queryString   = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_QUERY );
-    $this->query   = $this->parseParameters( $queryString );
-    $this->payload = json_decode( file_get_contents( 'php://input' ), true );
 
+
+    $this->payload = json_decode( file_get_contents( 'php://input' ), true );
+    if( $this->payload ) {
+      $requestInfo['payload'] = json_encode($this->payload);
+      $this->log->debug( "Payload parsed", $requestInfo );
+    }
+
+    $this->log->info( "Request parsed", $requestInfo );
   }
   /**
    * addMethodHandler add a callable for a request method
@@ -126,11 +146,7 @@ class Request
    */
   public function handleRequest(): void
   {
-    $this->log->debug( "Handle " . $this->method, [ 
-      'id' => $this->id,
-      'query' => $this->query,
-      'payload' => $this->payload
-    ] );
+    $this->log->debug( "Dispatch request", [ 'method' => $this->method ] );
     $this->methodHandlers[ $this->method ]( $this );
   }
 
