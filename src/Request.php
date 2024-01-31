@@ -79,7 +79,7 @@ class Request
      * e.g. /api/index.php/<endpoint>[/<id>] or /api/index.php/<endpoint>?<query>
      * $uri[0] is always empty, $uri[1] is the endpoint
      */
-    if( null === $path = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ) ) {
+    if( null === $path = parse_url( str_replace( '\\\\', '\\', $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ) ) {
       $this->log->alert( "URL parse error", [ 'url' => $_SERVER['REQUEST_URI'] ] );
       throw new \InvalidArgumentException( "invalid request uri" );
     }
