@@ -38,7 +38,7 @@ abstract class Rest
         ->addMethodHandler( RM::Put, [ $this, 'put' ] )
         ->addMethodHandler( RM::Delete, [ $this, 'delete' ] );
 
-      $this->resource_handler = '\\' . $this->getNamespace() . '\\' . $this->request->resource;
+      $this->resource_handler = '\\' . $this->getNamespace() . '\\' . $request->resource;
       $request->handleRequest();
 
     } catch ( \InvalidArgumentException $e ) {
