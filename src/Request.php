@@ -155,7 +155,7 @@ class Request
    *
    * @return bool
    */
-  private function isResourceValid(): bool
+  protected function isResourceValid(): bool
   {
     return $this->resource and in_array( $this->resource, $this->allowedEndpoints );
   }
