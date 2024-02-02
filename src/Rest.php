@@ -17,7 +17,7 @@ abstract class Rest
   
   /**
    * getNamespace
-   * * @deprecated 4.0 tightly coupled with persist-bd
+   * @deprecated 4.0 tightly coupled with persist-bd
    * @return string
    */
   protected abstract function getNamespace(): string;
