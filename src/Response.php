@@ -4,17 +4,17 @@ namespace Kingsoft\Http;
 
 enum ContentTypeString: string
 {
-	case TextPlain = 'text/plain';
-	case TextHtml = 'text/html';
-	case Json = 'application/json';
+	case TextPlain   = 'text/plain';
+	case TextHtml    = 'text/html';
+	case Json        = 'application/json';
 	case JsonProblem = 'application/problem+json';
-	case Xml = 'application/xml';
-	case XmlProblem = 'application/problem+xml';
+	case Xml         = 'application/xml';
+	case XmlProblem  = 'application/problem+xml';
 }
 enum ContentType: string
 {
 	case Json = 'json';
-	case Xml = 'xml';
+	case Xml  = 'xml';
 	case Text = 'text';
 }
 
@@ -124,6 +124,11 @@ class Response
 		?ContentType $type = ContentType::Json,
 	) {
 		self::sendStatusCode( StatusCode::InternalServerError );
-		self::sendMessage( 'error', $code, $message, $type );
+		self::sendMessage(
+			StatusCode::toString( StatusCode::InternalServerError ),
+			$code,
+			$message,
+			$type
+		);
 	}
 }

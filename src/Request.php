@@ -84,7 +84,10 @@ class Request
     if( null === $path = parse_url( str_replace( '\\\\', '\\', $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ) ) {
       $this->log->alert( "URL parse error", [ 'url' => $_SERVER['REQUEST_URI'] ] );
       Response::sendStatusCode( StatusCode::BadRequest );
-      Response::sendMessage( "Invalid URL", 0, "Could not parse '" . $_SERVER['REQUEST_URI'] . "'" );
+      Response::sendMessage(
+        StatusCode::toString(StatusCode::BadRequest),
+        StatusCode::BadRequest->value, 
+        "Could not parse '" . $_SERVER['REQUEST_URI'] . "'" );
     }
     $uri                     = explode( '/', $path );
     $this->resource          = $uri[1];
