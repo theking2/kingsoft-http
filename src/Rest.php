@@ -15,19 +15,9 @@ abstract class Rest
   public abstract function delete(): void;
   public abstract function head(): void;
   
-  /**
-   * getNamespace
-   * @deprecated 4.0 tightly coupled with persist-bd
-   * @return string
-   */
-  protected abstract function getNamespace(): string;
   protected abstract function createExceptionBody( \Throwable $e ): string;
 
-/**
- * @var string $resource_handler fullname of the resourc class
- * @deprecated 4.0 tightly coupled with persist-bd
- */
-  protected string $resource_handler;
+
   public function __construct( Request $request )
   {
     try {
@@ -38,7 +28,6 @@ abstract class Rest
         ->addMethodHandler( RM::Put, [ $this, 'put' ] )
         ->addMethodHandler( RM::Delete, [ $this, 'delete' ] );
 
-      $this->resource_handler = '\\' . $this->getNamespace() . '\\' . $request->resource;
       $request->handleRequest();
 
     } catch ( \InvalidArgumentException $e ) {
