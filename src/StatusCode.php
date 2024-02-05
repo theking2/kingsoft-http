@@ -53,7 +53,7 @@ enum StatusCode: int
 	 * @param  mixed $statusCode
 	 * @return string
 	 */
-	private static function toString( StatusCode $statusCode ): string
+	public static function toString( StatusCode $statusCode ): string
 	{
 		return match ( $statusCode ) {
 			StatusCode::Continue => 'Continue',
