@@ -8,13 +8,13 @@ enum ContentTypeString: string
 	case TextHtml    = 'text/html';
 	case Json        = 'application/json';
 	case JsonProblem = 'application/problem+json';
-	case Xml         = 'application/xml';
-	case XmlProblem  = 'application/problem+xml';
+	// case Xml         = 'application/xml'; no explicit support for xml
+	// case XmlProblem  = 'application/problem+xml';
 }
 enum ContentType: string
 {
 	case Json = 'json';
-	case Xml  = 'xml';
+	// case Xml  = 'xml'; no explicit support for xml
 	case Text = 'text';
 }
 
@@ -47,7 +47,6 @@ class Response
 				'Content-Type: %s',
 				match ( $contentType ) {
 					ContentType::Json => ContentTypeString::Json->value,
-					ContentType::Xml => ContentTypeString::Xml->value,
 					ContentType::Text => ContentTypeString::TextPlain->value,
 					default => ContentTypeString::TextPlain->value
 				}
@@ -74,14 +73,12 @@ class Response
 		}
 		match ( $type ) {
 			ContentType::Json => self::sendContentType( ContentType::Json ),
-			ContentType::Xml => self::sendContentType( ContentType::Xml ),
 			ContentType::Text => self::sendContentType( ContentType::Text ),
 			default => self::sendContentType( ContentType::Json )
 		};
 
 		exit( match ( $type ) {
 			ContentType::Json => json_encode( $payload ),
-			ContentType::Xml => xmlrpc_encode( $payload ),
 			ContentType::Text => serialize( $payload ),
 			default => json_encode( $payload )
 		} );
