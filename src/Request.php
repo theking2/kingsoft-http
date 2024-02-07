@@ -85,8 +85,8 @@ class Request
       $this->log->alert( "URL parse error", [ 'url' => $_SERVER['REQUEST_URI'] ] );
       Response::sendStatusCode( StatusCode::BadRequest );
       Response::sendMessage(
-        StatusCode::toString(StatusCode::BadRequest),
-        StatusCode::BadRequest->value, 
+        StatusCode::toString( StatusCode::BadRequest ),
+        StatusCode::BadRequest->value,
         "Could not parse '" . $_SERVER['REQUEST_URI'] . "'" );
     }
     $uri                     = explode( '/', $path );
@@ -123,7 +123,7 @@ class Request
 
     $this->payload = json_decode( file_get_contents( 'php://input' ), true );
     if( $this->payload ) {
-      $requestInfo['payload'] = json_encode($this->payload);
+      $requestInfo['payload'] = json_encode( $this->payload );
       $this->log->debug( "Payload parsed", $requestInfo );
     }
 
@@ -184,8 +184,13 @@ class Request
       // parse the query string
       foreach( explode( '&', $queryString ) as $param ) {
         $keyvalue = explode( '=', $param );
-        if( count( $keyvalue ) !== 2 )
-          throw new \BadFunctionCallException( "malforemd param " . $param );
+        if( count( $keyvalue ) !== 2 ) {
+          Response::sendStatusCode( StatusCode::BadRequest );
+          Response::sendMessage(
+            StatusCode::toString( StatusCode::BadRequest ),
+            StatusCode::BadRequest->value,
+            "Could not parse param '$param'" );
+        }
 
         $result[ $keyvalue[0] ] = '*' . str_replace( '*', '%', $keyvalue[1] ); // use the like operator
       }
