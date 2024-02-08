@@ -96,6 +96,9 @@ class Request
     $uri = explode( '/', $path );
 
     $this->parseResource( urldecode( $uri[1] ) );
+    $requestInfo['resource'] = $this->resource;
+    $requestInfo['offset']   = $this->offset;
+    $requestInfo['limit']    = $this->limit;
 
     if( !$this->isResourceValid() ) {
       $this->log->info( "Invalid resource", $requestInfo );
@@ -214,19 +217,17 @@ class Request
   {
     $regexp = "/(?'resource'.*)\[(?'offset'\d*)\-(?'limit'\d*)?\](.*)$/";
     if( !preg_match( $regexp, $rawResource, $matches ) ) {
-      $this->log->debug( "regexp  not matched, normal endpoint is resource", $requestInfo );
+      $this->log->debug( "regexp  not matched, normal endpoint is resource" );
       $this->resource          = $rawResource;
       $this->offset            = 0;
       $this->limit             = 0;
       $requestInfo['resource'] = $this->resource;
     } else {
       $this->log->debug( "regexp match", $matches );
-      $this->resource          = $matches['resource'];
-      $this->offset            = (int) $matches['offset'];
-      $this->limit             = (int) $matches['limit'] ?? 0;
-      $requestInfo['resource'] = $this->resource;
-      $requestInfo['offset']   = $this->offset;
-      $requestInfo['limit']    = $this->limit;
+      $this->resource = $matches['resource'];
+      $this->offset   = (int) $matches['offset'];
+      $this->limit    = (int) $matches['limit'] ?? 0;
+
     }
   }
   /**
