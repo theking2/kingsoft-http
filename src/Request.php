@@ -215,7 +215,7 @@ class Request
 
   private function parseResource( string $rawResource )
   {
-    $regexp = "/(?'resource'.*)\[(?'offset'\d*)(\-(?'limit'\d*))?\](?'query'.*)$/";
+    $regexp = "/(?'resource'.*)\[(?'offset'\d*)(\-(?'limit'\d*))?\](.*)$/";
 
     if( !preg_match( $regexp, $rawResource, $matches ) ) {
       $this->log->debug( "regexp  not matched, normal endpoint" );
