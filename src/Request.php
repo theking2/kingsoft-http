@@ -192,7 +192,12 @@ class Request
             "Could not parse param '$param'" );
         }
 
-        $result[ $keyvalue[0] ] = '*' . str_replace( '*', '%', $keyvalue[1] ); // use the like operator
+    		$keyvalue[1] = urldecode( $keyvalue[1] );
+    		if( false !== strpos( "!><", substr( $keyvalue[1], 0, 1 ) ) ) { // special selects
+    			$result[ $keyvalue[0] ] = $keyvalue[1];
+    		} else { 
+          $result[ $keyvalue[0] ] = '*' . str_replace( '*', '%', $keyvalue[1] ); // use the like operator
+    		}
       }
       return $result;
     } else {
