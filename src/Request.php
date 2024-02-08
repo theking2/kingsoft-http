@@ -27,6 +27,10 @@ class Request
   public array $methodHandlers = [];
   /** @var string $resource name of the requested resource */
   public readonly string $resource;
+  /** @var int $offset offset in the resrouce list */
+  public readonly int $offset;
+  /** @var int $limit max number of resrouces */
+  public readonly int $limit;
   /** @var int|string|null $id id of the requested resource */
   public readonly int|string|null $id;
   /** @var array|null $query query parameters as key value array */
@@ -89,9 +93,13 @@ class Request
         StatusCode::BadRequest->value,
         "Could not parse '" . $_SERVER['REQUEST_URI'] . "'" );
     }
-    $uri                     = explode( '/', $path );
-    $this->resource          = $uri[1];
+    $uri = explode( '/', $path );
+
+    $this->parseResource( urldecode( $uri[1] ) );
     $requestInfo['resource'] = $this->resource;
+    $requestInfo['offset']   = $this->offset;
+    $requestInfo['limit']    = $this->limit;
+
     if( !$this->isResourceValid() ) {
       $this->log->info( "Invalid resource", $requestInfo );
 
@@ -192,12 +200,12 @@ class Request
             "Could not parse param '$param'" );
         }
 
-    		$keyvalue[1] = urldecode( $keyvalue[1] );
-    		if( false !== strpos( "!><", substr( $keyvalue[1], 0, 1 ) ) ) { // special selects
-    			$result[ $keyvalue[0] ] = $keyvalue[1];
-    		} else { 
+        $keyvalue[1] = urldecode( $keyvalue[1] );
+        if( false !== strpos( "!><", substr( $keyvalue[1], 0, 1 ) ) ) { // special selects
+          $result[ $keyvalue[0] ] = $keyvalue[1];
+        } else {
           $result[ $keyvalue[0] ] = '*' . str_replace( '*', '%', $keyvalue[1] ); // use the like operator
-    		}
+        }
       }
       return $result;
     } else {
@@ -205,6 +213,23 @@ class Request
     }
   }
 
+  private function parseResource( string $rawResource )
+  {
+    $regexp = "/(?'resource'.*)\[(?'offset'\d*)\-(?'limit'\d*)?\](.*)$/";
+    if( !preg_match( $regexp, $rawResource, $matches ) ) {
+      $this->log->debug( "regexp  not matched, normal endpoint" );
+      $this->resource          = $rawResource;
+      $this->offset            = 0;
+      $this->limit             = 0;
+      $requestInfo['resource'] = $this->resource;
+    } else {
+      $this->log->debug( "regexp match", $matches );
+      $this->resource = $matches['resource'];
+      $this->offset   = (int) $matches['offset'];
+      $this->limit    = (int) $matches['limit'] ?? 0;
+
+    }
+  }
   /**
    * setLogger 
    *
