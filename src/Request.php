@@ -217,7 +217,7 @@ class Request
   {
     $regexp = "/(?'resource'.*)\[(?'offset'\d*)\-(?'limit'\d*)?\](.*)$/";
     if( !preg_match( $regexp, $rawResource, $matches ) ) {
-      $this->log->debug( "regexp  not matched, normal endpoint is resource" );
+      $this->log->debug( "regexp  not matched, normal endpoint" );
       $this->resource          = $rawResource;
       $this->offset            = 0;
       $this->limit             = 0;
