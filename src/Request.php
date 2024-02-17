@@ -75,7 +75,7 @@ class Request
       $this->log->info( "Handle OPTION" );
       Response::sendStatusCode( StatusCode::NoContent );
       header( 'Access-Control-Allow-Methods: ' . $this->allowedMethods );
-      header( 'Access-Control-Allow-Headers: Access-Control-Allow-Origen, Access-Control-Allow-Headers, Access-Control-Request-Method, Origin' );
+      header( 'Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Origen, Access-Control-Allow-Headers, Access-Control-Request-Method, Origin' );
       header( 'Access-Control-Max-Age: ' . $this->maxAge );
 
       exit;
