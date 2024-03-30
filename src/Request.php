@@ -27,6 +27,10 @@ class Request
   public array $methodHandlers = [];
   /** @var string $resource name of the requested resource */
   public readonly string $resource;
+  /** @var int $offset offset in the resrouce list */
+  public readonly int $offset;
+  /** @var int $limit max number of resrouces */
+  public readonly int $limit;
   /** @var int|string|null $id id of the requested resource */
   public readonly int|string|null $id;
   /** @var array|null $query query parameters as key value array */
@@ -72,7 +76,7 @@ class Request
       $this->log->info( "Handle OPTION" );
       Response::sendStatusCode( StatusCode::NoContent );
       header( 'Access-Control-Allow-Methods: ' . $this->allowedMethods );
-      header( 'Access-Control-Allow-Headers: Access-Control-Allow-Origen, Access-Control-Allow-Headers, Access-Control-Request-Method, Origin' );
+      header( 'Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Origen, Access-Control-Allow-Headers, Access-Control-Request-Method, Origin' );
       header( 'Access-Control-Max-Age: ' . $this->maxAge );
 
       exit;
@@ -85,15 +89,22 @@ class Request
     if( null === $path = parse_url( str_replace( '\\\\', '\\', $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ) ) {
       $this->log->alert( "URL parse error", [ 'url' => $_SERVER['REQUEST_URI'] ] );
       Response::sendStatusCode( StatusCode::BadRequest );
-      Response::sendMessage( "Invalid URL", 0, "Could not parse '" . $_SERVER['REQUEST_URI'] . "'" );
+      Response::sendMessage(
+        StatusCode::toString( StatusCode::BadRequest ),
+        StatusCode::BadRequest->value,
+        "Could not parse '" . $_SERVER['REQUEST_URI'] . "'" );
     }
     $uri = explode( '/', $path );
     // remove the first empty element and additional path parts
     for( $i = 0; $i <= $this->skipPathParts; $i++ ) {
       array_shift( $uri );
     }
-    $this->resource          = $uri[0];
+    $this->parseResource( implode('/', $uri );
+   
     $requestInfo['resource'] = $this->resource;
+    $requestInfo['offset']   = $this->offset;
+    $requestInfo['limit']    = $this->limit;
+
     if( !$this->isResourceValid() ) {
       $this->log->info( "Invalid resource", $requestInfo );
 
@@ -160,7 +171,7 @@ class Request
    *
    * @return bool
    */
-  private function isResourceValid(): bool
+  protected function isResourceValid(): bool
   {
     return $this->resource and in_array( $this->resource, $this->allowedEndpoints );
   }
@@ -186,10 +197,20 @@ class Request
       // parse the query string
       foreach( explode( '&', $queryString ) as $param ) {
         $keyvalue = explode( '=', $param );
-        if( count( $keyvalue ) !== 2 )
-          throw new \BadFunctionCallException( "malforemd param " . $param );
+        if( count( $keyvalue ) !== 2 ) {
+          Response::sendStatusCode( StatusCode::BadRequest );
+          Response::sendMessage(
+            StatusCode::toString( StatusCode::BadRequest ),
+            StatusCode::BadRequest->value,
+            "Could not parse param '$param'" );
+        }
 
-        $result[ $keyvalue[0] ] = '*' . str_replace( '*', '%', $keyvalue[1] ); // use the like operator
+        $keyvalue[1] = urldecode( $keyvalue[1] );
+        if( false !== strpos( "!><", substr( $keyvalue[1], 0, 1 ) ) ) { // special selects
+          $result[ $keyvalue[0] ] = $keyvalue[1];
+        } else {
+          $result[ $keyvalue[0] ] = '*' . str_replace( '*', '%', $keyvalue[1] ); // use the like operator
+        }
       }
       return $result;
     } else {
@@ -197,6 +218,24 @@ class Request
     }
   }
 
+  private function parseResource( string $rawResource )
+  {
+    $regexp = "/(?'resource'\w*)(\[(?'offset'\d*)(\,(?'limit'\d*)\])?)?(?'query'.*)$/";
+
+    if( !preg_match( $regexp, $rawResource, $matches ) ) {
+      $this->log->debug( "regexp not matched, normal endpoint", [ 'resource' => $rawResource ] );
+      $this->resource          = $rawResource;
+      $this->offset            = 0;
+      $this->limit             = 0;
+
+    } else {
+      $this->log->debug( "regexp match", $matches );
+      $this->resource = $matches['resource'];
+      $this->offset   = (int) $matches['offset'];
+      $this->limit    = (int) $matches['limit'] ?? 0;
+
+    }
+  }
   /**
    * setLogger 
    *

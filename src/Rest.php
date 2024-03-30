@@ -14,8 +14,7 @@ abstract class Rest
   public abstract function put(): void;
   public abstract function delete(): void;
   public abstract function head(): void;
-
-  protected abstract function getNamespace(): string;
+  
   protected abstract function createExceptionBody( \Throwable $e ): string;
 
   protected string $resource_handler;
@@ -31,7 +30,6 @@ abstract class Rest
 
       $this->resource_handler = '\\' . $this->getNamespace() . '\\' . $this->request->resource;
       $this->request->handleRequest();
-
     } catch ( \InvalidArgumentException $e ) {
       Response::sendStatusCode( StatusCode::BadRequest );
       Response::sendContentType( ContentType::Json );
