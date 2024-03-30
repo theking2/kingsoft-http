@@ -49,7 +49,8 @@ class Request
     readonly ?string $allowedMethods = 'GET,POST,PUT,DELETE,PATCH,OPTIONS',
     readonly ?string $allowedOrigin = '*',
     readonly ?int $maxAge = 86400,
-    protected ?\Psr\Log\LoggerInterface $log = new \Psr\Log\NullLogger()
+    protected ?\Psr\Log\LoggerInterface $log = new \Psr\Log\NullLogger(),
+    readonly ?int $skipPathParts = 0
   ) {
 
 
@@ -86,8 +87,12 @@ class Request
       Response::sendStatusCode( StatusCode::BadRequest );
       Response::sendMessage( "Invalid URL", 0, "Could not parse '" . $_SERVER['REQUEST_URI'] . "'" );
     }
-    $uri                     = explode( '/', $path );
-    $this->resource          = $uri[1];
+    $uri = explode( '/', $path );
+    // remove the first empty element and additional path parts
+    for( $i = 0; $i <= $this->skipPathParts; $i++ ) {
+      array_shift( $uri );
+    }
+    $this->resource          = $uri[0];
     $requestInfo['resource'] = $this->resource;
     if( !$this->isResourceValid() ) {
       $this->log->info( "Invalid resource", $requestInfo );
@@ -100,10 +105,10 @@ class Request
     /**
      * remove the trailing slash, from uri[2] if present
      */
-    if( isset( $uri[2] ) && $uri[2] === '' ) {
-      unset( $uri[2] );
+    if( isset( $uri[1] ) && $uri[1] === '' ) {
+      unset( $uri[1] );
     }
-    $this->id          = $uri[2] ?? null;
+    $this->id          = $uri[1] ?? null;
     $requestInfo['id'] = $this->id;
     if( $this->id )
       $this->log->debug( "ResourceID parsed", $requestInfo );
@@ -120,7 +125,7 @@ class Request
 
     $this->payload = json_decode( file_get_contents( 'php://input' ), true );
     if( $this->payload ) {
-      $requestInfo['payload'] = json_encode($this->payload);
+      $requestInfo['payload'] = json_encode( $this->payload );
       $this->log->debug( "Payload parsed", $requestInfo );
     }
 
