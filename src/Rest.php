@@ -19,10 +19,10 @@ abstract class Rest
   protected abstract function createExceptionBody( \Throwable $e ): string;
 
   protected string $resource_handler;
-  public function __construct( Request $request )
+  public function __construct( readonly Request $request )
   {
     try {
-      $request
+      $this->request
         ->addMethodHandler( RM::Head, [ $this, 'head' ] )
         ->addMethodHandler( RM::Get, [ $this, 'get' ] )
         ->addMethodHandler( RM::Post, [ $this, 'post' ] )
@@ -30,7 +30,7 @@ abstract class Rest
         ->addMethodHandler( RM::Delete, [ $this, 'delete' ] );
 
       $this->resource_handler = '\\' . $this->getNamespace() . '\\' . $this->request->resource;
-      $request->handleRequest();
+      $this->request->handleRequest();
 
     } catch ( \InvalidArgumentException $e ) {
       Response::sendStatusCode( StatusCode::BadRequest );
