@@ -53,7 +53,8 @@ class Request
     readonly ?string $allowedMethods = 'GET,POST,PUT,DELETE,PATCH,OPTIONS',
     readonly ?string $allowedOrigin = '*',
     readonly ?int $maxAge = 86400,
-    protected ?\Psr\Log\LoggerInterface $log = new \Psr\Log\NullLogger()
+    protected ?\Psr\Log\LoggerInterface $log = new \Psr\Log\NullLogger(),
+    readonly ?int $skipPathParts = 0
   ) {
 
 
@@ -94,8 +95,12 @@ class Request
         "Could not parse '" . $_SERVER['REQUEST_URI'] . "'" );
     }
     $uri = explode( '/', $path );
-
-    $this->parseResource( urldecode( $uri[1] ) );
+    // remove the first empty element and additional path parts
+    for( $i = 0; $i <= $this->skipPathParts; $i++ ) {
+      array_shift( $uri );
+    }
+    $this->parseResource( implode('/', $uri );
+   
     $requestInfo['resource'] = $this->resource;
     $requestInfo['offset']   = $this->offset;
     $requestInfo['limit']    = $this->limit;
@@ -111,10 +116,10 @@ class Request
     /**
      * remove the trailing slash, from uri[2] if present
      */
-    if( isset( $uri[2] ) && $uri[2] === '' ) {
-      unset( $uri[2] );
+    if( isset( $uri[1] ) && $uri[1] === '' ) {
+      unset( $uri[1] );
     }
-    $this->id          = $uri[2] ?? null;
+    $this->id          = $uri[1] ?? null;
     $requestInfo['id'] = $this->id;
     if( $this->id )
       $this->log->debug( "ResourceID parsed", $requestInfo );

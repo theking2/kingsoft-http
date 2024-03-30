@@ -17,19 +17,19 @@ abstract class Rest
   
   protected abstract function createExceptionBody( \Throwable $e ): string;
 
-
-  public function __construct( Request $request )
+  protected string $resource_handler;
+  public function __construct( readonly Request $request )
   {
     try {
-      $request
+      $this->request
         ->addMethodHandler( RM::Head, [ $this, 'head' ] )
         ->addMethodHandler( RM::Get, [ $this, 'get' ] )
         ->addMethodHandler( RM::Post, [ $this, 'post' ] )
         ->addMethodHandler( RM::Put, [ $this, 'put' ] )
         ->addMethodHandler( RM::Delete, [ $this, 'delete' ] );
 
-      $request->handleRequest();
-
+      $this->resource_handler = '\\' . $this->getNamespace() . '\\' . $this->request->resource;
+      $this->request->handleRequest();
     } catch ( \InvalidArgumentException $e ) {
       Response::sendStatusCode( StatusCode::BadRequest );
       Response::sendContentType( ContentType::Json );
