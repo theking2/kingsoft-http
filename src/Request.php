@@ -99,7 +99,7 @@ class Request
     for( $i = 0; $i <= $this->skipPathParts; $i++ ) {
       array_shift( $uri );
     }
-    $this->parseResource( implode('/', $uri );
+    $this->parseResource( implode('/', $uri ) );
    
     $requestInfo['resource'] = $this->resource;
     $requestInfo['offset']   = $this->offset;
