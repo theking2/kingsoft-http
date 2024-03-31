@@ -1,11 +1,13 @@
 <?php declare(strict_types=1);
 namespace Kingsoft\Http;
 
-use Kingsoft\Http\Request;
-use Kingsoft\Http\RequestMethod as RM;
-use Kingsoft\Http\Response;
-use Kingsoft\Http\StatusCode;
-use Kingsoft\Http\ContentType;
+use Kingsoft\Http\{
+  Request, 
+  RequestMethod as RM,
+  Response, 
+  StatusCode, 
+  ContentType
+};	
 
 abstract class Rest
 {
@@ -28,7 +30,6 @@ abstract class Rest
         ->addMethodHandler( RM::Put, [ $this, 'put' ] )
         ->addMethodHandler( RM::Delete, [ $this, 'delete' ] );
 
-      $this->resource_handler = '\\' . $this->getNamespace() . '\\' . $this->request->resource;
       $this->request->handleRequest();
     } catch ( \InvalidArgumentException $e ) {
       Response::sendStatusCode( StatusCode::BadRequest );
@@ -41,6 +42,4 @@ abstract class Rest
       exit( $this->createExceptionBody( $e ));
     }
   }
-
-
 }
