@@ -17,12 +17,25 @@ enum RequestMethod: string
 
 }
 /**
- * Request
+ * Request class - Facade for the request
  */
 class Request
 {
-  /** @var string $method that is requested */
-  public readonly string $method;
+  /** @var int $maxAge max age for the OPTIONS request */
+  protected int $maxAge = 0;  
+  /**
+   * setMaxAge set the max age for the preflight cachcing
+   *
+   * @param  mixed $maxAge max age in seconds
+   * @return self
+   */
+  public function setMaxAge( int $maxAge ): self
+  {
+    $this->maxAge = $maxAge;
+    return $this;
+  }  
+  /** @var RequestMethod $method that is requested */
+  public readonly RequestMethod $method;
   /** @var array $methodHandlers callables for the methods signature($id, $query)*/
   public array $methodHandlers = [];
   /** @var string $resource name of the requested resource */
@@ -44,6 +57,7 @@ class Request
    * @param  array $allowedEndpoints list of allowed endpoints
    * @param  ?string $allowedOrigin comma separated list of allowed origins
    * @param  ?string $allowedMethods comma separated list of allowed methods
+   * @param  ?int $skipPathParts number of lefthand path parts to skip
    * @throws \InvalidArgumentException
    *
    * @return void
@@ -52,13 +66,11 @@ class Request
     readonly array $allowedEndpoints,
     readonly ?string $allowedMethods = 'GET,POST,PUT,DELETE,PATCH,OPTIONS',
     readonly ?string $allowedOrigin = '*',
-    readonly ?int $maxAge = 86400,
-    protected ?\Psr\Log\LoggerInterface $log = new \Psr\Log\NullLogger(),
     readonly ?int $skipPathParts = 0
   ) {
+    $this->log = new \Psr\Log\NullLogger();
 
-
-    $this->method          = $_SERVER["REQUEST_METHOD"];
+    $this->method          = RequestMethod::from($_SERVER["REQUEST_METHOD"]);
     $requestInfo['method'] = $this->method;
     $this->log->debug( "Request received", $requestInfo );
 
@@ -72,12 +84,13 @@ class Request
     header( 'Connection: Keep-Alive' );
 
     /* if the request method is OPTIONS, we don't need to parse the request further */
-    if( $this->method === RequestMethod::Options->value ) {
+    if( $this->method === RequestMethod::Options ) {
       $this->log->info( "Handle OPTION" );
       Response::sendStatusCode( StatusCode::NoContent );
       header( 'Access-Control-Allow-Methods: ' . $this->allowedMethods );
-      header( 'Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Origen, Access-Control-Allow-Headers, Access-Control-Request-Method, Origin' );
-      header( 'Access-Control-Max-Age: ' . $this->maxAge );
+      header( 'Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Origen, Access-Control-Request-Method, Origin' );
+      if( $this->maxAge )
+        header( 'Access-Control-Max-Age: ' . $this->maxAge );
 
       exit;
     }
@@ -99,8 +112,8 @@ class Request
     for( $i = 0; $i <= $this->skipPathParts; $i++ ) {
       array_shift( $uri );
     }
-    $this->parseResource( implode('/', $uri ) );
-   
+    $this->parseResource( implode( '/', $uri ) );
+
     $requestInfo['resource'] = $this->resource;
     $requestInfo['offset']   = $this->offset;
     $requestInfo['limit']    = $this->limit;
@@ -163,7 +176,7 @@ class Request
   public function handleRequest(): void
   {
     $this->log->debug( "Dispatch request", [ 'method' => $this->method ] );
-    $this->methodHandlers[ $this->method ]( $this );
+    $this->methodHandlers[ $this->method->value ]( $this );
   }
 
   /**
@@ -182,7 +195,7 @@ class Request
    */
   private function isMethodAllowed(): bool
   {
-    return in_array( $this->method, explode( ',', $this->allowedMethods ) );
+    return in_array( $this->method->value, explode( ',', $this->allowedMethods ) );
   }
   /**
    * Parse the query string and return an array of key=>value pairs
@@ -224,9 +237,9 @@ class Request
 
     if( !preg_match( $regexp, $rawResource, $matches ) ) {
       $this->log->debug( "regexp not matched, normal endpoint", [ 'resource' => $rawResource ] );
-      $this->resource          = $rawResource;
-      $this->offset            = 0;
-      $this->limit             = 0;
+      $this->resource = $rawResource;
+      $this->offset   = 0;
+      $this->limit    = 0;
 
     } else {
       $this->log->debug( "regexp match", $matches );
@@ -236,16 +249,17 @@ class Request
 
     }
   }
+  /** @var \Psr\Log\LoggerInterface $log */
+  protected \Psr\Log\LoggerInterface $log;
   /**
    * setLogger 
    *
    * @param  mixed $loggerInterface
-   * @return Request
+   * @return self
    */
-  public function setLogger( \Psr\Log\LoggerInterface $loggerInterface ): Request
+  public function setLogger( \Psr\Log\LoggerInterface $loggerInterface ): self
   {
-    $this->logger = $loggerInterface;
-
+    $this->log = $loggerInterface;
     return $this;
   }
 }
