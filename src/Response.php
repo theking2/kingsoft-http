@@ -18,11 +18,14 @@ enum ContentType: string
 	case Text = 'text';
 }
 
+/**
+ * Response - Send response to client
+ */
 class Response
 {
 
 	/**
-	 * sendStatusCode
+	 * sendStatusCode - Send status code header
 	 *
 	 * @param  mixed $statusCode
 	 * @return void
@@ -67,6 +70,8 @@ class Response
 	{
 		if( $get_etag ) {
 			header( 'ETag: ' . $get_etag() );
+		} else {
+			header( 'ETag: ' . sha1( serialize( $payload ) ) );
 		}
 		if( $payload === null ) {
 			exit();
