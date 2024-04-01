@@ -19,10 +19,10 @@ enum RequestMethod: string
 /**
  * Request class - Facade for the request
  */
-class Request
+class Request implements \Psr\Log\LoggerAwareInterface
 {
   /** @var int $maxAge max age for the OPTIONS request */
-  protected int $maxAge = 0;  
+  protected int $maxAge = 0;
   /**
    * setMaxAge set the max age for the preflight cachcing
    *
@@ -33,7 +33,7 @@ class Request
   {
     $this->maxAge = $maxAge;
     return $this;
-  }  
+  }
   /** @var RequestMethod $method that is requested */
   public readonly RequestMethod $method;
   /** @var array $methodHandlers callables for the methods signature($id, $query)*/
@@ -69,31 +69,33 @@ class Request
     readonly ?int $skipPathParts = 0
   ) {
     $this->log = new \Psr\Log\NullLogger();
-
-    $this->method          = RequestMethod::from($_SERVER["REQUEST_METHOD"]);
+  }
+  /**
+   * parseMethod Parse the request method
+   *
+   * @return bool
+   */
+  private function parseMethod(): bool
+  {
+    $this->method          = RequestMethod::from( $_SERVER["REQUEST_METHOD"] );
     $requestInfo['method'] = $this->method;
     $this->log->debug( "Request received", $requestInfo );
-
 
     if( !$this->isMethodAllowed() ) {
       $this->log->notice( "Method not allowed" . $this->method, [ 'allowed' => $this->allowedMethods ] );
       Response::sendStatusCode( StatusCode::MethodNotAllowed );
-      exit();
+      return false;
     }
-    header( 'Access-Control-Allow-Origin: ' . $this->allowedOrigin );
-    header( 'Connection: Keep-Alive' );
+    return true;
+  }
 
-    /* if the request method is OPTIONS, we don't need to parse the request further */
-    if( $this->method === RequestMethod::Options ) {
-      $this->log->info( "Handle OPTION" );
-      Response::sendStatusCode( StatusCode::NoContent );
-      header( 'Access-Control-Allow-Methods: ' . $this->allowedMethods );
-      header( 'Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Origen, Access-Control-Request-Method, Origin' );
-      if( $this->maxAge )
-        header( 'Access-Control-Max-Age: ' . $this->maxAge );
-
-      exit;
-    }
+  /**
+   * parseRequest Parse the request and set the properties
+   * side effect: set the properties
+   * @return bool
+   */
+  private function parseRequest(): bool
+  {
     /**
      * get the endpoint from the request
      * e.g. /api/index.php/<endpoint>[/<id>] or /api/index.php/<endpoint>?<query>
@@ -105,13 +107,16 @@ class Request
       Response::sendMessage(
         StatusCode::toString( StatusCode::BadRequest ),
         StatusCode::BadRequest->value,
-        "Could not parse '" . $_SERVER['REQUEST_URI'] . "'" );
+        "Could not parse '" . $_SERVER['REQUEST_URI'] . "'"
+      );
+      return false;
     }
     $uri = explode( '/', $path );
     // remove the first empty element and additional path parts
     for( $i = 0; $i <= $this->skipPathParts; $i++ ) {
       array_shift( $uri );
     }
+    $this->log->debug( "URI parsed", [ 'uri' => $uri ] );
     $this->parseResource( implode( '/', $uri ) );
 
     $requestInfo['resource'] = $this->resource;
@@ -123,20 +128,17 @@ class Request
 
       Response::sendStatusCode( StatusCode::NotFound );
       Response::sendMessage( "unknown resource", 0, "Resource $this->resource not found" );
+      return false;
     }
     $this->log->debug( "Resource parsed", $requestInfo );
 
-    /**
-     * remove the trailing slash, from uri[2] if present
-     */
     if( isset( $uri[1] ) && $uri[1] === '' ) {
+      $this->log->debug( "Empty ID", $requestInfo );
       unset( $uri[1] );
     }
-    $this->id          = $uri[1] ?? null;
-    $requestInfo['id'] = $this->id;
+    $this->id = $requestInfo['id'] = $uri[1] ?? null;
     if( $this->id )
       $this->log->debug( "ResourceID parsed", $requestInfo );
-
 
     $queryString = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_QUERY );
     $this->query = $this->parseParameters( $queryString );
@@ -145,15 +147,16 @@ class Request
       $requestInfo['query'] = $this->query;
       $this->log->debug( "Query parsed", $requestInfo );
     }
-
-
+    return true;
+  }
+  private function parsePayload(): bool
+  {
     $this->payload = json_decode( file_get_contents( 'php://input' ), true );
     if( $this->payload ) {
       $requestInfo['payload'] = json_encode( $this->payload );
       $this->log->debug( "Payload parsed", $requestInfo );
     }
-
-    $this->log->info( "Request parsed", $requestInfo );
+    return true;
   }
   /**
    * addMethodHandler add a callable for a request method
@@ -169,16 +172,63 @@ class Request
   }
 
   /**
-   * handleRequest call the method handler for the requested method
+   * handleRequest Parse the api reqeust and call the method handler for the requested method
+   *
+   * @return bool
+   */
+  public function handleRequest(): bool
+  {
+    //header( 'Connection: Keep-Alive' );
+    header( 'Access-Control-Allow-Methods: ' . $this->allowedMethods );
+    header( 'Access-Control-Allow-Origin: ' . $this->allowedOrigin );
+
+    if( !$this->parseMethod() ) {
+      return false;
+    }
+
+    /* if the request method is OPTIONS, we don't need to parse the request further */
+    if( $this->method === RequestMethod::Options ) {
+      $this->handleOption();
+      return true;
+    }
+
+    if( !$this->parseRequest() ) {
+      return false;
+    }
+
+    if( !$this->parsePayload() ) {
+      return false;
+    }
+    return true;
+  }
+  
+  /**
+   * callMethodHandler call the method handler for the requested method
    *
    * @return void
    */
-  public function handleRequest(): void
+  public function callMethodHandler(): void
   {
-    $this->log->debug( "Dispatch request", [ 'method' => $this->method ] );
+    $this->log->debug( "Call method handler", [ 'method' => $this->method ] );
     $this->methodHandlers[ $this->method->value ]( $this );
   }
 
+  /**
+   * hendleOption we are handling the OPTION request
+   * side effect: send the headers and exit
+   * @return void
+   */
+  private function handleOption(): void
+  {
+    $this->log->info( "Handle OPTION" );
+    header( 'Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Origen, Access-Control-Request-Method, Origin' );
+
+    if( $this->maxAge )
+      header( 'Access-Control-Max-Age: ' . $this->maxAge );
+
+    Response::sendStatusCode( StatusCode::NoContent );
+    exit;
+  }
   /**
    * isResourceValid check if the requested resource is available
    *
@@ -231,6 +281,12 @@ class Request
     }
   }
 
+  /**
+   * Parse the resource from request
+   *
+   * @param  mixed $rawResource
+   * @return void
+   */
   private function parseResource( string $rawResource )
   {
     $regexp = "/(?'resource'\w*)(\[(?'offset'\d*)(\,(?'limit'\d*)\])?)?(?'query'.*)$/";
@@ -257,9 +313,8 @@ class Request
    * @param  mixed $loggerInterface
    * @return self
    */
-  public function setLogger( \Psr\Log\LoggerInterface $loggerInterface ): self
+  public function setLogger( \Psr\Log\LoggerInterface $logger ): void
   {
-    $this->log = $loggerInterface;
-    return $this;
+    $this->log = $logger;
   }
 }
