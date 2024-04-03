@@ -19,10 +19,10 @@ enum RequestMethod: string
 /**
  * Request class - Facade for the request
  */
-class Request implements \Psr\Log\LoggerAwareInterface
+readonly class Request implements \Psr\Log\LoggerAwareInterface
 {
   /** @var int $maxAge max age for the OPTIONS request */
-  protected int $maxAge = 0;
+  protected int $maxAge;
   /**
    * setMaxAge set the max age for the preflight cachcing
    *
@@ -35,21 +35,19 @@ class Request implements \Psr\Log\LoggerAwareInterface
     return $this;
   }
   /** @var RequestMethod $method that is requested */
-  public readonly RequestMethod $method;
-  /** @var array $methodHandlers callables for the methods signature($id, $query)*/
-  public array $methodHandlers = [];
+  public RequestMethod $method;
   /** @var string $resource name of the requested resource */
-  public readonly string $resource;
+  public string $resource;
   /** @var int $offset offset in the resrouce list */
-  public readonly int $offset;
+  public int $offset;
   /** @var int $limit max number of resrouces */
-  public readonly int $limit;
+  public int $limit;
   /** @var int|string|null $id id of the requested resource */
-  public readonly int|string|null $id;
+  public int|string|null $id;
   /** @var array|null $query query parameters as key value array */
-  public readonly array|null $query;
+  public array|null $query;
   /** @var array|null $payload payload of the request */
-  public readonly array|null $payload;
+  public array|null $payload;
 
   /**
    * __construct create a new Request object
@@ -63,12 +61,11 @@ class Request implements \Psr\Log\LoggerAwareInterface
    * @return void
    */
   public function __construct(
-    readonly array $allowedEndpoints,
-    readonly ?string $allowedMethods = 'GET,POST,PUT,DELETE,PATCH,OPTIONS',
-    readonly ?string $allowedOrigin = '*',
-    readonly ?int $skipPathParts = 0
+    protected array $allowedEndpoints,
+    protected ?string $allowedMethods = 'GET,POST,PUT,DELETE,PATCH,OPTIONS',
+    protected ?string $allowedOrigin = '*',
+    protected ?int $skipPathParts = 0
   ) {
-    $this->log = new \Psr\Log\NullLogger();
   }
   /**
    * parseMethod Parse the request method
@@ -159,19 +156,6 @@ class Request implements \Psr\Log\LoggerAwareInterface
     return true;
   }
   /**
-   * addMethodHandler add a callable for a request method
-   *
-   * @param  mixed $requestMethod
-   * @param  mixed $requestHandler
-   * @return self
-   */
-  public function addMethodHandler( RequestMethod $requestMethod, callable|array $requestHandler ): self
-  {
-    $this->methodHandlers[ $requestMethod->value ] = $requestHandler;
-    return $this;
-  }
-
-  /**
    * handleRequest Parse the api reqeust and call the method handler for the requested method
    *
    * @return bool
@@ -201,17 +185,7 @@ class Request implements \Psr\Log\LoggerAwareInterface
     }
     return true;
   }
-  
-  /**
-   * callMethodHandler call the method handler for the requested method
-   *
-   * @return void
-   */
-  public function callMethodHandler(): void
-  {
-    $this->log->debug( "Call method handler", [ 'method' => $this->method ] );
-    $this->methodHandlers[ $this->method->value ]( $this );
-  }
+
 
   /**
    * hendleOption we are handling the OPTION request
@@ -223,7 +197,7 @@ class Request implements \Psr\Log\LoggerAwareInterface
     $this->log->info( "Handle OPTION" );
     header( 'Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Origen, Access-Control-Request-Method, Origin' );
 
-    if( $this->maxAge )
+    if( isset($this->maxAge) )
       header( 'Access-Control-Max-Age: ' . $this->maxAge );
 
     Response::sendStatusCode( StatusCode::NoContent );
