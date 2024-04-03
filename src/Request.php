@@ -76,10 +76,10 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
   {
     $this->method          = RequestMethod::from( $_SERVER["REQUEST_METHOD"] );
     $requestInfo['method'] = $this->method;
-    $this->log->debug( "Request received", $requestInfo );
+    $this->logger->debug( "Request received", $requestInfo );
 
     if( !$this->isMethodAllowed() ) {
-      $this->log->notice( "Method not allowed" . $this->method, [ 'allowed' => $this->allowedMethods ] );
+      $this->logger->notice( "Method not allowed" . $this->method, [ 'allowed' => $this->allowedMethods ] );
       Response::sendStatusCode( StatusCode::MethodNotAllowed );
       return false;
     }
@@ -99,7 +99,7 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
      * $uri[0] is always empty, $uri[1] is the endpoint
      */
     if( null === $path = parse_url( str_replace( '\\\\', '\\', $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ) ) {
-      $this->log->alert( "URL parse error", [ 'url' => $_SERVER['REQUEST_URI'] ] );
+      $this->logger->alert( "URL parse error", [ 'url' => $_SERVER['REQUEST_URI'] ] );
       Response::sendStatusCode( StatusCode::BadRequest );
       Response::sendMessage(
         StatusCode::toString( StatusCode::BadRequest ),
@@ -113,7 +113,7 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
     for( $i = 0; $i <= $this->skipPathParts; $i++ ) {
       array_shift( $uri );
     }
-    $this->log->debug( "URI parsed", [ 'uri' => $uri ] );
+    $this->logger->debug( "URI parsed", [ 'uri' => $uri ] );
     $this->parseResource( implode( '/', $uri ) );
 
     $requestInfo['resource'] = $this->resource;
@@ -121,28 +121,28 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
     $requestInfo['limit']    = $this->limit;
 
     if( !$this->isResourceValid() ) {
-      $this->log->info( "Invalid resource", $requestInfo );
+      $this->logger->info( "Invalid resource", $requestInfo );
 
       Response::sendStatusCode( StatusCode::NotFound );
       Response::sendMessage( "unknown resource", 0, "Resource $this->resource not found" );
       return false;
     }
-    $this->log->debug( "Resource parsed", $requestInfo );
+    $this->logger->debug( "Resource parsed", $requestInfo );
 
     if( isset( $uri[1] ) && $uri[1] === '' ) {
-      $this->log->debug( "Empty ID", $requestInfo );
+      $this->logger->debug( "Empty ID", $requestInfo );
       unset( $uri[1] );
     }
     $this->id = $requestInfo['id'] = $uri[1] ?? null;
     if( $this->id )
-      $this->log->debug( "ResourceID parsed", $requestInfo );
+      $this->logger->debug( "ResourceID parsed", $requestInfo );
 
     $queryString = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_QUERY );
     $this->query = $this->parseParameters( $queryString );
 
     if( $this->query ) {
       $requestInfo['query'] = $this->query;
-      $this->log->debug( "Query parsed", $requestInfo );
+      $this->logger->debug( "Query parsed", $requestInfo );
     }
     return true;
   }
@@ -151,7 +151,7 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
     $this->payload = json_decode( file_get_contents( 'php://input' ), true );
     if( $this->payload ) {
       $requestInfo['payload'] = json_encode( $this->payload );
-      $this->log->debug( "Payload parsed", $requestInfo );
+      $this->logger->debug( "Payload parsed", $requestInfo );
     }
     return true;
   }
@@ -194,7 +194,7 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
    */
   private function handleOption(): void
   {
-    $this->log->info( "Handle OPTION" );
+    $this->logger->info( "Handle OPTION" );
     header( 'Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Origen, Access-Control-Request-Method, Origin' );
 
     if( isset($this->maxAge) )
@@ -266,21 +266,21 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
     $regexp = "/(?'resource'\w*)(\[(?'offset'\d*)(\,(?'limit'\d*)\])?)?(?'query'.*)$/";
 
     if( !preg_match( $regexp, $rawResource, $matches ) ) {
-      $this->log->debug( "regexp not matched, normal endpoint", [ 'resource' => $rawResource ] );
+      $this->logger->debug( "regexp not matched, normal endpoint", [ 'resource' => $rawResource ] );
       $this->resource = $rawResource;
       $this->offset   = 0;
       $this->limit    = 0;
 
     } else {
-      $this->log->debug( "regexp match", $matches );
+      $this->logger->debug( "regexp match", $matches );
       $this->resource = $matches['resource'];
       $this->offset   = (int) $matches['offset'];
       $this->limit    = (int) $matches['limit'] ?? 0;
 
     }
   }
-  /** @var \Psr\Log\LoggerInterface $log */
-  protected \Psr\Log\LoggerInterface $log;
+  /** @var \Psr\Log\LoggerInterface $logger */
+  protected \Psr\Log\LoggerInterface $logger;
   /**
    * setLogger 
    *
@@ -289,6 +289,6 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
    */
   public function setLogger( \Psr\Log\LoggerInterface $logger ): void
   {
-    $this->log = $logger;
+    $this->logger = $logger;
   }
 }
