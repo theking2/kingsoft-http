@@ -190,14 +190,13 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
   /**
    * hendleOption we are handling the OPTION request
    * side effect: send the headers and exit
-   * @return void
    */
   private function handleOption(): void
   {
     $this->logger->info( "Handle OPTION" );
     header( 'Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Origen, Access-Control-Request-Method, Origin' );
 
-    if( isset($this->maxAge) )
+    if( isset( $this->maxAge ) )
       header( 'Access-Control-Max-Age: ' . $this->maxAge );
 
     Response::sendStatusCode( StatusCode::NoContent );
@@ -224,10 +223,8 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
   /**
    * Parse the query string and return an array of key=>value pairs
    * return false if no query string is present
-   * @param  string $uri
-   * @return array|null
    */
-  private function parseParameters( ?string $queryString ): array|null
+  private function parseParameters( ?string $queryString ): array
   {
     $result = [];
     if( !is_null( $queryString ) ) {
@@ -251,7 +248,7 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
       }
       return $result;
     } else {
-      return null;
+      return [];
     }
   }
 
