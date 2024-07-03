@@ -92,42 +92,48 @@ class Response
 	/**
 	 * sendMessage Send a fixed message
 	 * @side-effect exit
-	 * @param string $result
-	 * @param int $code
-	 * @param string $message
-	 * @param ContentTYpe $type
+	 * @param $result
+	 * @param $code
+	 * @param $message
+	 * @param $type
 	 *
 	 * @return void
 	 */
 	public static function sendMessage(
 		string $result,
-		?int $code = 0,
+		int|StatusCode $code = StatusCode::OK,
 		?string $message = "",
 		?ContentType $type = ContentType::Json,
 	) {
+		if ( is_int( $code ) ) {
+			$code = StatusCode::tryFrom( $code ) ?? StatusCode::OK;
+		}
 		$payload = [ 
 			"result" => $result,
 			"message" => $message,
-			"code" => $code
+			"code" => $code->value
 		];
 		self::sendPayload( $payload, null, $type );
 	}
 
 	/**
 	 * sendError
-	 * @param string $message
-	 * @param int $code
+	 * @param $message
+	 * @param $code
 	 *
 	 * @return void
 	 */
 	public static function sendError(
 		string $message,
-		?int $code = 0,
+		int|StatusCode $code = StatusCode::InternalServerError,
 		?ContentType $type = ContentType::Json,
 	) {
-		self::sendStatusCode( StatusCode::InternalServerError );
+		if ( is_int( $code ) ) {
+			$code = StatusCode::tryFrom( $code ) ?? StatusCode::InternalServerError;
+		}
+		self::sendStatusCode( $code );
 		self::sendMessage(
-			StatusCode::toString( StatusCode::InternalServerError ),
+			StatusCode::toString( $code ),
 			$code,
 			$message,
 			$type
