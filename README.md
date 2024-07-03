@@ -28,7 +28,7 @@ try {
   $request = new Request(
     [ 'Test' ],
     "GET, POST",
-    "http://client.sbw-plc.localhost",
+    "http://client.example.com",
   );
   $request->setLogger( LOG );
   $api = new MyRest( $request, LOG );
