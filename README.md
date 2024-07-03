@@ -27,8 +27,9 @@ class MyRest extends Rest
 try {
   $request = new Request(
     [ 'Test' ],                         // allowed endpoints
-    "GET, POST",                        // allowedmethods
-    "http://client.example.com",        // allowedorigin
+                                        // when using persist-db discover.php the result will give you a plugin list.
+    "GET, POST",                        // allowed methods, (might change to a string array in the future)
+    "http://client.example.com",        // allowed origin
   );
 
   $request->setLogger( LOG );           // add a (monolog) logger
