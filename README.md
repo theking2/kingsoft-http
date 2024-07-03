@@ -36,7 +36,7 @@ try {
   $api = new MyRest( $request, LOG );   // create the request handler
   $api->handleRequest();                // handle the request, which will send a well-formed HATEOAS response
 } catch ( Exception $e ) {              // If things go terribly wrong, send an error to the client
-  Response::sendError( $e->getMessage(), StatusCode::InternalServerError->value );
+  Response::sendError( $e->getMessage(), StatusCode::InternalServerError );
                                         // By this time one or more errors have been logged already.
 }
 ```
