@@ -26,14 +26,16 @@ class MyRest extends Rest
 
 try {
   $request = new Request(
-    [ 'Test' ],
-    "GET, POST",
-    "http://client.example.com",
+    [ 'Test' ],                         // allowed endpoints
+    "GET, POST",                        // allowedmethods
+    "http://client.example.com",        // allowedorigin
   );
-  $request->setLogger( LOG );
-  $api = new MyRest( $request, LOG );
-  $api->handleRequest();
-} catch ( Exception $e ) {
+
+  $request->setLogger( LOG );           // add a (monolog) logger
+  $api = new MyRest( $request, LOG );   // create the request handler
+  $api->handleRequest();                // handle the request, which will send a well-formed HATEOAS response
+} catch ( Exception $e ) {              // If things go terribly wrong, send an error to the client
   Response::sendError( $e->getMessage(), StatusCode::InternalServerError->value );
+                                        // By this time one or more errors have been logged already.
 }
 ```
