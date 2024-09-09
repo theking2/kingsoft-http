@@ -16,15 +16,9 @@ abstract readonly class Rest implements RestInterface
     readonly Request $request,
     readonly \Psr\Log\LoggerInterface $logger = new \Psr\Log\NullLogger
   ) {
-    // Make sure the request object has a logger
-    if( !isset( $this->request->logger) ) {
-      $this->request->setLogger( $logger );
-    }
   }
   /**
    * handleRequest handle the request by calling the appropriate method
-   *
-   * @return void
    */
   public function handleRequest(): void
   {

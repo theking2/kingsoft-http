@@ -50,15 +50,11 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
   public array|null $payload;
 
   /**
-   * __construct create a new Request object
-   * Parse the request and set the properties
-   * @param  array $allowedEndpoints list of allowed endpoints
-   * @param  ?string $allowedOrigin comma separated list of allowed origins
-   * @param  ?string $allowedMethods comma separated list of allowed methods
-   * @param  ?int $skipPathParts number of lefthand path parts to skip
-   * @throws \InvalidArgumentException
-   *
-   * @return void
+   * Summary of __construct
+   * @param $allowedEndpoints Array of allowed endpoints
+   * @param $allowedMethods Allowed methods (comma separated)
+   * @param $allowedOrigin Allowed origin
+   * @param $skipPathParts Number of path parts to skip
    */
   public function __construct(
     protected array $allowedEndpoints,
@@ -68,9 +64,7 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
   ) {
   }
   /**
-   * parseMethod Parse the request method
-   *
-   * @return bool
+   * Parse the request method
    */
   private function parseMethod(): bool
   {
@@ -87,9 +81,7 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
   }
 
   /**
-   * parseRequest Parse the request and set the properties
-   * side effect: set the properties
-   * @return bool
+   * Parse the request and set the properties
    */
   private function parseRequest(): bool
   {
@@ -146,6 +138,10 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
     }
     return true;
   }
+
+  /**
+   * Parse the payload from the request
+   */
   private function parsePayload(): bool
   {
     $this->payload = json_decode( file_get_contents( 'php://input' ), true );
@@ -156,9 +152,7 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
     return true;
   }
   /**
-   * handleRequest Parse the api reqeust and call the method handler for the requested method
-   *
-   * @return bool
+   * Parse the api reqeust and call the method handler for the requested method
    */
   public function handleRequest(): bool
   {
@@ -188,8 +182,8 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
 
 
   /**
-   * hendleOption we are handling the OPTION request
-   * side effect: send the headers and exit
+   * Handling the OPTION request for preflight
+   * Sending the allowed headers and exit
    */
   private function handleOption(): void
   {
@@ -203,18 +197,14 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
     exit;
   }
   /**
-   * isResourceValid check if the requested resource is available
-   *
-   * @return bool
+   * Check if the requested resource is available
    */
   protected function isResourceValid(): bool
   {
     return $this->resource and in_array( $this->resource, $this->allowedEndpoints );
   }
   /**
-   * isMethodAllowed check if the requested method is allowed
-   *
-   * @return bool
+   * Check if the requested method is allowed
    */
   private function isMethodAllowed(): bool
   {
@@ -254,9 +244,6 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
 
   /**
    * Parse the resource from request
-   *
-   * @param  mixed $rawResource
-   * @return void
    */
   private function parseResource( string $rawResource )
   {
@@ -276,13 +263,9 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
 
     }
   }
-  /** @var \Psr\Log\LoggerInterface $logger */
   protected \Psr\Log\LoggerInterface $logger;
   /**
-   * setLogger 
-   *
-   * @param  mixed $loggerInterface
-   * @return self
+   * Replace the null logger with a real logger
    */
   public function setLogger( \Psr\Log\LoggerInterface $logger ): void
   {
