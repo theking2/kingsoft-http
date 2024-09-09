@@ -26,14 +26,17 @@ class MyRest extends Rest
 
 try {
   $request = new Request(
-    [ 'Test' ],
-    "GET, POST",
-    "http://client.sbw-plc.localhost",
+    [ 'Test' ],                         // allowed endpoints
+                                        // when using persist-db discover.php the result will give you a plugin list.
+    "GET, POST",                        // allowed methods, (might change to a string array in the future)
+    "http://client.example.com",        // allowed origin
   );
-  $request->setLogger( LOG );
-  $api = new MyRest( $request, LOG );
-  $api->handleRequest();
-} catch ( Exception $e ) {
-  Response::sendError( $e->getMessage(), StatusCode::InternalServerError->value );
+
+  $request->setLogger( LOG );           // add a (monolog) logger
+  $api = new MyRest( $request, LOG );   // create the request handler
+  $api->handleRequest();                // handle the request, which will send a well-formed HATEOAS response
+} catch ( Exception $e ) {              // If things go terribly wrong, send an error to the client
+  Response::sendError( $e->getMessage(), StatusCode::InternalServerError );
+                                        // By this time one or more errors have been logged already.
 }
 ```
