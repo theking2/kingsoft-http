@@ -21,14 +21,11 @@ enum ContentType: string
 /**
  * Response - Send response to client
  */
-class Response
+readonly class Response
 {
-
 	/**
-	 * sendStatusCode - Send status code header
-	 *
-	 * @param  mixed $statusCode
-	 * @return void
+	 * Send status code header
+	 * @param $statusCode Code to be send
 	 */
 	public static function sendStatusCode( StatusCode $statusCode ): void
 	{
@@ -37,10 +34,8 @@ class Response
 
 	}
 	/**
-	 * sendContentType - Send content type header
-	 *
-	 * @param  mixed $contentType
-	 * @return void
+	 * Send content type header
+	 * @param $contentType Type to be send
 	 */
 	public static function sendContentType( ContentType $contentType ): void
 	{
@@ -57,11 +52,12 @@ class Response
 		);
 	}
 	/**
-	 * sendPayload - Send payload
-	 * Side effect: exit
-	 * @param  array|object|null $payload - payload to send, if null, exit
-	 * @param  callable $get_etag - function to get etag, even if payload is null
-	 * @param  ContentType $type - content type, default json
+	 * Send payload
+	 * Side effect: exit script
+	 * 
+	 * @param $payload Payload to be send as array or object, if null exit
+	 * @param $get_etag Callable that creates the etag or if missing sha1 of the payload
+	 * @param $type Type of response to be send
 	 */
 	public static function sendPayload(
 		array|object|null &$payload,
@@ -90,14 +86,11 @@ class Response
 	}
 
 	/**
-	 * sendMessage Send a fixed message
-	 * @side-effect exit
-	 * @param string $result
-	 * @param int $code
-	 * @param string $message
-	 * @param ContentTYpe $type
-	 *
-	 * @return void
+	 * Send a fixed message
+	 * 
+	 * @param $result of action
+	 * @param $code code of the action
+	 * @param $message string that contains the message
 	 */
 	public static function sendMessage(
 		string $result,
@@ -114,11 +107,11 @@ class Response
 	}
 
 	/**
-	 * sendError
-	 * @param string $message
-	 * @param int $code
-	 *
-	 * @return void
+	 * Send error message
+	 * 
+	 * @param $message The error message
+	 * @param $code Code that describes the error
+	 * @param $type ContentType of the response
 	 */
 	public static function sendError(
 		string $message,
