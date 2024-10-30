@@ -73,7 +73,7 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
     $this->logger->debug( "Request received", $requestInfo );
 
     if( !$this->isMethodAllowed() ) {
-      $this->logger->notice( "Method not allowed" . $this->method, [ 'allowed' => $this->allowedMethods ] );
+      $this->logger->notice( "Method not allowed" . $this->method->value, [ 'allowed' => $this->allowedMethods ] );
       Response::sendStatusCode( StatusCode::MethodNotAllowed );
       return false;
     }
