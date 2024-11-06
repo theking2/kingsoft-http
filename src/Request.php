@@ -164,12 +164,6 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
       return false;
     }
 
-    /* if the request method is OPTIONS, we don't need to parse the request further */
-    if( $this->method === RequestMethod::Options ) {
-      $this->handleOption();
-      return true;
-    }
-
     if( !$this->parseRequest() ) {
       return false;
     }
@@ -180,22 +174,6 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
     return true;
   }
 
-
-  /**
-   * Handling the OPTION request for preflight
-   * Sending the allowed headers and exit
-   */
-  private function handleOption(): void
-  {
-    $this->logger->info( "Handle OPTION" );
-    header( 'Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Origen, Access-Control-Request-Method, Origin' );
-
-    if( isset( $this->maxAge ) )
-      header( 'Access-Control-Max-Age: ' . $this->maxAge );
-
-    Response::sendStatusCode( StatusCode::NoContent );
-    exit;
-  }
   /**
    * Check if the requested resource is available
    */

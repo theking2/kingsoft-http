@@ -8,6 +8,7 @@ abstract readonly class Rest implements RestInterface
   public abstract function put(): void;
   public abstract function delete(): void;
   public abstract function head(): void;
+  public abstract function options(): void;
 
   protected abstract function createExceptionBody( \Throwable $e ): string;
 

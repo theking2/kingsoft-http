@@ -8,4 +8,6 @@ interface RestInterface
   public function put(): void;
   public function delete(): void;
   public function head(): void;
+  public function options(): void;
+  public function handleRequest(): void;
 }
