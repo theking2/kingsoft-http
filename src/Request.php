@@ -146,7 +146,7 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
   {
     $this->payload = json_decode( file_get_contents( 'php://input' ), true );
     if( $this->payload ) {
-      $requestInfo['payload'] = json_encode( $this->payload );
+      $requestInfo['payload'] = json_encode( $this->payload, JSON_UNESCAPED_SLASHES );
       $this->logger->debug( "Payload parsed", $requestInfo );
     }
     return true;
