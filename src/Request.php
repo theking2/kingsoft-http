@@ -115,8 +115,8 @@ readonly class Request implements \Psr\Log\LoggerAwareInterface
     if( !$this->isResourceValid() ) {
       $this->logger->info( "Invalid resource", $requestInfo );
 
-      Response::sendStatusCode( StatusCode::NotFound );
-      Response::sendMessage( "unknown resource", 0, "Resource $this->resource not found" );
+      Response::sendStatusCode( StatusCode::BadRequest );
+      Response::sendMessage( "unknown resource", StatusCode::BadRequest, "Resource '{$this->resource}' invalid" );
       return false;
     }
     $this->logger->debug( "Resource parsed", $requestInfo );

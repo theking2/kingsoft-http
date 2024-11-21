@@ -70,7 +70,7 @@ readonly class Response
 			header( 'ETag: ' . sha1( serialize( $payload ) ) );
 		}
 		if( $payload === null ) {
-			exit();
+			exit(0);
 		}
 		match ( $type ) {
 			ContentType::Json => self::sendContentType( ContentType::Json ),
@@ -78,11 +78,12 @@ readonly class Response
 			default => self::sendContentType( ContentType::Json )
 		};
 
-		exit( match ( $type ) {
+		echo match ($type) {
 			ContentType::Json => json_encode( $payload ),
 			ContentType::Text => serialize( $payload ),
 			default => json_encode( $payload )
-		} );
+		};
+		exit(0);
 	}
 
 	/**
