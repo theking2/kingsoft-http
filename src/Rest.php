@@ -3,21 +3,27 @@ namespace Kingsoft\Http;
 
 abstract readonly class Rest implements RestInterface
 {
+  // #MARK: Abstracts
+
   public abstract function get(): void;
   public abstract function post(): void;
   public abstract function put(): void;
   public abstract function delete(): void;
   public abstract function head(): void;
-  public abstract function options(): void;
 
   protected abstract function createExceptionBody( \Throwable $e ): string;
-
   protected string $resource_handler;
+
+  // #MARK: Construction
+
   public function __construct(
     readonly Request $request,
     readonly \Psr\Log\LoggerInterface $logger = new \Psr\Log\NullLogger
   ) {
   }
+
+  // #MARK: public methods
+
   /**
    * handleRequest handle the request by calling the appropriate method
    */
@@ -31,13 +37,28 @@ abstract readonly class Rest implements RestInterface
     } catch ( \InvalidArgumentException $e ) {
       Response::sendStatusCode( StatusCode::BadRequest );
       Response::sendContentType( ContentType::Json );
-      exit( $this->createExceptionBody( $e ) );
+      exit($this->createExceptionBody( $e ));
 
     } catch ( \Exception $e ) {
       Response::sendStatusCode( StatusCode::InternalServerError );
       Response::sendContentType( ContentType::Json );
-      exit( $this->createExceptionBody( $e ) );
+      exit($this->createExceptionBody( $e ));
     }
   }
 
+  // #MARK: Methods options
+
+  /**
+   * Handling the OPTION request for preflight
+   * Sending the allowed headers and exit
+   */
+  public function options(): void
+  {
+    $this->logger->info( "Handle OPTION" );
+    header( 'Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Origen, Access-Control-Request-Method, Origin' );
+    if( isset($this->controlMaxAge) )
+      header( 'Access-Control-Max-Age: ' . $this->controlMaxAge );
+    Response::sendStatusCode( StatusCode::NoContent );
+    exit;
+  }
 }
