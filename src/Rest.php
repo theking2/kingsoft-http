@@ -13,6 +13,7 @@ abstract readonly class Rest implements RestInterface
 
   protected abstract function createExceptionBody( \Throwable $e ): string;
   protected string $resource_handler;
+  protected ?int controlMaxAge;
 
   // #MARK: Construction
 
@@ -23,6 +24,11 @@ abstract readonly class Rest implements RestInterface
   }
 
   // #MARK: public methods
+  public function setMaxAge( int $maxAge ): self
+  {
+    $this->controlMaxAge = $maxAge;
+    return self;
+  }
 
   /**
    * handleRequest handle the request by calling the appropriate method
