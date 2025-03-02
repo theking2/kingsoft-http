@@ -13,7 +13,7 @@ abstract readonly class Rest implements RestInterface
 
   protected abstract function createExceptionBody( \Throwable $e ): string;
   protected string $resource_handler;
-  protected ?int $controlMaxAge;
+  protected int $controlMaxAge;
 
   // #MARK: Construction
 
