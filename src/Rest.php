@@ -19,7 +19,7 @@ abstract readonly class Rest implements RestInterface
   public function __construct(
     readonly Request $request,
     readonly \Psr\Log\LoggerInterface $logger = new \Psr\Log\NullLogger,
-    protacted int $controlMaxAge = 86400
+    protected int $controlMaxAge = 86400
   ) {
   }
 
